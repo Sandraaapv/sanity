@@ -1,0 +1,26 @@
+# Maven / Java build artifacts
+backend/target/
+backend/out/
+backend/*.jar
+backend/*.war
+
+# Node / Frontend dependencies and builds
+frontend/node_modules/
+frontend/dist/
+frontend/.env*
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+log/
+*.log
