@@ -140,6 +140,6 @@
 
 .custom-checkbox.checked {
   border-color: var(--accent-purple);
-  background: rgba(139, 124, 246, 0.1);
-  color: var(--light-lavender);
+  background: var(--accent-purple);
+  color: white;
 }

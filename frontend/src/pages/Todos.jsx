@@ -14,6 +14,7 @@ export default function Todos() {
   // Editing Category name state
   const [editingCat, setEditingCat] = useState(null);
   const [editingCatName, setEditingCatName] = useState('');
+  const [addingItemToCat, setAddingItemToCat] = useState(null);
 
   const defaultCategories = ['General', 'Study', 'Shopping', 'Work', 'Personal'];
 
@@ -157,7 +158,7 @@ export default function Todos() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 space-y-6">
+    <div className="max-w-5xl mx-auto p-4 space-y-6">
       {/* Header Panel */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2.5">
@@ -197,8 +198,8 @@ export default function Todos() {
         </form>
       )}
 
-      {/* Lists Container (Collapsible Panels) */}
-      <div className="space-y-4">
+      {/* Lists Grid (Collapsible Panels) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {Object.entries(categoriesMap).map(([catName, listTodos]) => {
           const isExpanded = expandedCats[catName] ?? true;
           const completedCount = listTodos.filter(t => t.completed).length;
@@ -269,7 +270,7 @@ export default function Todos() {
                         <div className="flex items-center gap-3.5 cursor-pointer" onClick={() => handleToggle(todo)}>
                           {/* Mock custom checkbox layout */}
                           <div className={`custom-checkbox ${todo.completed ? 'checked' : ''}`}>
-                            {todo.completed && <Check className="w-3.5 h-3.5 text-purple-400 stroke-[3px]" />}
+                            {todo.completed && <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />}
                           </div>
                           <span className={`text-xs font-semibold text-neutral-200 tracking-wide transition-all ${
                             todo.completed ? 'line-through text-neutral-500 font-normal' : ''
@@ -293,22 +294,35 @@ export default function Todos() {
                   </div>
 
                   {/* Inline creation input form (mocking mockup lists action) */}
-                  <form onSubmit={(e) => handleInlineCreate(e, catName)} className="pt-2">
-                    <div className="relative">
-                      <input
-                        type="text" placeholder="Create note / Add item..."
-                        className="w-full glass-input rounded-xl pl-3 pr-10 py-2 text-xs placeholder-neutral-500 font-medium"
-                        value={inlineInputs[catName] || ''}
-                        onChange={e => setInlineInputs({ ...inlineInputs, [catName]: e.target.value })}
-                      />
-                      <button 
-                        type="submit"
-                        className="absolute right-2.5 top-1.5 p-1 bg-neutral-800 text-purple-400 hover:text-white rounded-lg transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </form>
+                  {addingItemToCat === catName ? (
+                    <form onSubmit={(e) => { handleInlineCreate(e, catName); setAddingItemToCat(null); }} className="pt-2">
+                      <div className="relative animate-fadeIn">
+                        <input
+                          type="text" placeholder="Create note / Add item..." autoFocus
+                          className="w-full glass-input rounded-xl pl-3 pr-10 py-2 text-xs placeholder-neutral-500 font-medium"
+                          value={inlineInputs[catName] || ''}
+                          onChange={e => setInlineInputs({ ...inlineInputs, [catName]: e.target.value })}
+                          onBlur={() => {
+                            // Delay slightly to allow click to register
+                            setTimeout(() => setAddingItemToCat(null), 200);
+                          }}
+                        />
+                        <button 
+                          type="submit"
+                          className="absolute right-2.5 top-1.5 p-1 bg-neutral-800 text-purple-400 hover:text-white rounded-lg transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button 
+                      onClick={() => setAddingItemToCat(catName)}
+                      className="w-full border border-white/5 hover:border-white/10 hover:bg-white/5 bg-neutral-900/30 text-neutral-400 hover:text-white py-2 rounded-full text-xs font-semibold tracking-wide transition-all mt-3 flex items-center justify-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-purple-450" /> Create note
+                    </button>
+                  )}
                 </div>
               )}
             </div>
