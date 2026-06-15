@@ -64,7 +64,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+      <div className="min-h-screen flex items-center justify-center bg-theme-bg">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
       </div>
     );
@@ -99,7 +99,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] transition-colors duration-200">
+    <div className="min-h-screen bg-theme-bg transition-colors duration-200">
       <Navbar 
         currentTab={currentTab} 
         setCurrentTab={setCurrentTab} 

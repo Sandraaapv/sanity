@@ -5,7 +5,7 @@ import { Plus, Trash, Pin, Search, FileText, Settings, ListFilter, LayoutGrid, M
 export default function Notes() {
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState('');
-  const [newNote, setNewNote] = useState({ title: '', content: '', color: '#141625', category: 'General', isPinned: false });
+  const [newNote, setNewNote] = useState({ title: '', content: '', color: '#141026', category: 'General', isPinned: false });
   const [newCatName, setNewCatName] = useState('');
   const [isCreatingCat, setIsCreatingCat] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
@@ -42,7 +42,7 @@ export default function Notes() {
       };
       const res = await api.post('/api/notes', payload);
       setNotes([res.data, ...notes]);
-      setNewNote({ title: '', content: '', color: '#141625', category: 'General', isPinned: false });
+      setNewNote({ title: '', content: '', color: '#141026', category: 'General', isPinned: false });
       setNewCatName('');
       setIsCreatingCat(false);
     } catch (err) { 
@@ -127,7 +127,7 @@ export default function Notes() {
         <Search className="w-4 h-4 absolute left-4 top-3.5 text-neutral-500" />
         <input
           type="text" placeholder="Search notes..."
-          className="w-full bg-[#141625] border border-white/5 pl-11 pr-4 py-3 rounded-xl text-xs placeholder-neutral-500 text-neutral-200 focus:outline-none focus:border-purple-500/50"
+          className="w-full bg-theme-surface border border-white/5 pl-11 pr-4 py-3 rounded-xl text-xs placeholder-neutral-500 text-neutral-200 focus:outline-none focus:border-theme-purple/50"
           value={search} onChange={e => setSearch(e.target.value)}
         />
       </div>
@@ -176,7 +176,7 @@ export default function Notes() {
             <button 
               type="button" 
               onClick={() => setNewNote({ ...newNote, isPinned: !newNote.isPinned })}
-              className={`p-2 border rounded-xl text-xs font-semibold ${newNote.isPinned ? 'bg-purple-950/40 text-purple-400 border-purple-500/30' : 'border-white/5 text-neutral-400 hover:text-white'}`}
+              className={`p-2 border rounded-xl text-xs font-semibold ${newNote.isPinned ? 'bg-theme-purple/10 text-theme-purple border-theme-purple/20' : 'border-white/5 text-neutral-400 hover:text-white'}`}
             >
               <Pin className="w-3.5 h-3.5" />
             </button>
@@ -204,7 +204,7 @@ export default function Notes() {
                 onClick={() => toggleGroupExpand(groupName)}
               >
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-purple-400/90 font-sans">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-theme-purple/90 font-sans">
                     {groupName} <span className="text-neutral-500">({noteCount})</span>
                   </h2>
                   <span className="text-neutral-500 text-xs">
@@ -223,14 +223,14 @@ export default function Notes() {
                   {groupNotes.map(note => (
                     <div 
                       key={note.id}
-                      className="bg-[#141625] border border-white/5 hover:border-purple-500/20 rounded-2xl p-4 flex flex-col justify-between hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-200 group relative"
+                      className="bg-theme-surface border border-white/5 hover:border-theme-purple/25 rounded-2xl p-4 flex flex-col justify-between hover:shadow-xl hover:shadow-theme-purple/5 transition-all duration-200 group relative"
                     >
                       {/* Pinned Indicator / Trigger */}
                       <button 
                         onClick={() => handleTogglePin(note)}
                         className={`absolute top-4 right-4 p-1.5 rounded-lg transition-colors ${
                           note.isPinned 
-                            ? 'text-purple-400 bg-purple-950/20' 
+                            ? 'text-theme-purple bg-theme-purple/10' 
                             : 'text-neutral-500 hover:text-neutral-300 opacity-0 group-hover:opacity-100'
                         }`}
                         title={note.isPinned ? "Unpin note" : "Pin note"}

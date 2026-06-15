@@ -6,7 +6,7 @@ export default function Profile({ user, onUserUpdate }) {
   const [profile, setProfile] = useState({
     displayName: user?.displayName || '',
     themePreference: user?.themePreference || 'dark',
-    accentColor: user?.accentColor || '#8B7CF6',
+    accentColor: user?.accentColor || '#6E44FF',
     timezone: user?.timezone || 'UTC',
     emailRemindersEnabled: user?.emailRemindersEnabled ?? true
   });
@@ -53,8 +53,8 @@ export default function Profile({ user, onUserUpdate }) {
     <div className="max-w-xl mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-6">
-        <div className="p-2 bg-purple-600/10 border border-purple-500/20 rounded-xl">
-          <User className="w-6 h-6 text-purple-400" />
+        <div className="p-2 bg-theme-purple/10 border border-theme-purple/20 rounded-xl">
+          <User className="w-6 h-6 text-theme-purple" />
         </div>
         <div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight font-sans">Workspace Settings</h1>
@@ -69,18 +69,18 @@ export default function Profile({ user, onUserUpdate }) {
       )}
 
       {/* Avatar Card */}
-      <div className="bg-[#141625] border border-white/5 p-6 rounded-2xl flex items-center gap-6 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
+      <div className="bg-theme-surface border border-white/5 p-6 rounded-2xl flex items-center gap-6 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-theme-purple/5 rounded-full blur-xl pointer-events-none" />
         <div className="relative group">
           {user?.avatarUrl ? (
             <img src={user.avatarUrl} alt="avatar" className="w-20 h-20 rounded-full object-cover border-2 border-white/10 shadow-lg" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
+            <div className="w-20 h-20 rounded-full bg-purple-gradient text-white flex items-center justify-center text-2xl font-bold shadow-lg">
               {user?.displayName?.charAt(0).toUpperCase()}
             </div>
           )}
           <label className="absolute bottom-0 right-0 bg-neutral-900 border border-white/10 text-white p-2 rounded-full cursor-pointer hover:scale-105 transition-transform shadow">
-            <Camera className="w-3.5 h-3.5 text-purple-400" />
+            <Camera className="w-3.5 h-3.5 text-theme-purple" />
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </label>
         </div>
@@ -91,7 +91,7 @@ export default function Profile({ user, onUserUpdate }) {
       </div>
 
       {/* Preferences Form */}
-      <form onSubmit={handleProfileSave} className="bg-[#141625] border border-white/5 p-6 rounded-2xl space-y-4 shadow-2xl">
+      <form onSubmit={handleProfileSave} className="bg-theme-surface border border-white/5 p-6 rounded-2xl space-y-4 shadow-2xl">
         <div>
           <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Display Name</label>
           <input
@@ -118,7 +118,7 @@ export default function Profile({ user, onUserUpdate }) {
         <div className="flex items-center gap-2.5 py-2">
           <input
             type="checkbox" id="reminders" 
-            className="rounded border-white/5 bg-neutral-900 text-purple-600 focus:ring-offset-neutral-950 focus:ring-purple-500"
+            className="rounded border-white/5 bg-neutral-900 text-theme-purple focus:ring-offset-neutral-950 focus:ring-theme-purple"
             checked={profile.emailRemindersEnabled} 
             onChange={e => setProfile({ ...profile, emailRemindersEnabled: e.target.checked })}
           />
@@ -130,7 +130,7 @@ export default function Profile({ user, onUserUpdate }) {
         <button 
           type="submit" 
           disabled={saving}
-          className="w-full bg-purple-gradient bg-purple-gradient-hover text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-purple-500/10 disabled:opacity-50"
+          className="w-full bg-purple-gradient bg-purple-gradient-hover text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-theme-purple/10 disabled:opacity-50"
         >
           <Save className="w-4 h-4 text-purple-200" /> 
           {saving ? 'Saving...' : 'Save Settings'}

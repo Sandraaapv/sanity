@@ -10,9 +10,9 @@ export default function Navbar({ currentTab, setCurrentTab, user, onLogout, them
   ];
 
   return (
-    <nav className="glass-panel bg-[#141625]/50 border-b border-white/5 px-6 py-3.5 flex justify-between items-center sticky top-0 z-50">
+    <nav className="glass-panel bg-theme-surface/50 border-b border-white/5 px-6 py-3.5 flex justify-between items-center sticky top-0 z-50">
       <div className="flex items-center gap-2 font-bold text-xl cursor-pointer" onClick={() => setCurrentTab('todos')}>
-        <div className="p-1.5 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-lg shadow-lg shadow-purple-500/20">
+        <div className="p-1.5 bg-purple-gradient rounded-lg shadow-lg shadow-purple-500/20">
           <Zap className="w-5 h-5 text-white" />
         </div>
         <span className="text-gradient-lavender tracking-tight font-extrabold text-2xl font-sans">Momentum</span>
@@ -29,11 +29,11 @@ export default function Navbar({ currentTab, setCurrentTab, user, onLogout, them
                 onClick={() => setCurrentTab(item.id)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                   active 
-                    ? 'bg-[#141625] text-white border border-white/10 shadow-lg' 
+                    ? 'bg-theme-surface text-white border border-white/10 shadow-lg' 
                     : 'text-neutral-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${active ? 'text-purple-400' : 'text-neutral-400'}`} />
+                <Icon className={`w-4 h-4 ${active ? 'text-theme-purple' : 'text-neutral-400'}`} />
                 {item.name}
               </button>
             );
@@ -49,11 +49,11 @@ export default function Navbar({ currentTab, setCurrentTab, user, onLogout, them
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          <div className="flex items-center gap-2 bg-[#141625] border border-white/5 rounded-xl py-1 px-2.5">
+          <div className="flex items-center gap-2 bg-theme-surface border border-white/5 rounded-xl py-1 px-2.5">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt="avatar" className="w-6 h-6 rounded-full object-cover border border-neutral-700" />
             ) : (
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+              <div className="w-6 h-6 rounded-full bg-purple-gradient text-white flex items-center justify-center text-[10px] font-bold">
                 {user?.displayName?.charAt(0).toUpperCase()}
               </div>
             )}

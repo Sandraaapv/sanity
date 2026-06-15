@@ -11,7 +11,7 @@ export default function CalendarView() {
   const [selectedDateStr, setSelectedDateStr] = useState('');
   const [newEvent, setNewEvent] = useState({ 
     title: '', description: '', startTime: '', endTime: '', 
-    color: '#8B7CF6', location: '', reminderEnabled: false, reminderMinutesBefore: 15 
+    color: '#6E44FF', location: '', reminderEnabled: false, reminderMinutesBefore: 15 
   });
   
   // Event Detail Modal State
@@ -19,7 +19,7 @@ export default function CalendarView() {
   
   // Filters mapped to custom theme palette
   const colors = [
-    { value: '#8B7CF6', name: 'Meeting', bg: 'bg-purple-600/20 text-purple-300 border-purple-500/30' },
+    { value: '#6E44FF', name: 'Meeting', bg: 'bg-theme-purple/20 text-theme-lavender border-theme-purple/30' },
     { value: '#10B981', name: 'Work', bg: 'bg-emerald-600/20 text-emerald-300 border-emerald-500/30' },
     { value: '#F59E0B', name: 'Personal', bg: 'bg-amber-600/20 text-amber-300 border-amber-500/30' },
     { value: '#EF4444', name: 'Urgent', bg: 'bg-red-600/20 text-red-300 border-red-500/30' },
@@ -183,7 +183,7 @@ export default function CalendarView() {
         {/* Left Control Panel */}
         <div className="lg:col-span-1 space-y-4">
           {/* Filters Card */}
-          <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-[#141625]/60 shadow-xl">
+          <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-theme-surface/60 shadow-xl">
             <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Event Types</h2>
             <div className="space-y-1">
               <button
@@ -215,7 +215,7 @@ export default function CalendarView() {
           </div>
 
           {/* Mini upcoming timeline */}
-          <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-[#141625]/60 shadow-xl">
+          <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-theme-surface/60 shadow-xl">
             <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Upcoming events</h2>
             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
               {events.slice(0, 5).map(event => (
@@ -243,9 +243,9 @@ export default function CalendarView() {
         {/* Month Calendar Grid Panel */}
         <div className="lg:col-span-3 space-y-4">
           {/* Navigation Month Switcher */}
-          <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-[#141625]/60 shadow-xl flex items-center justify-between">
+          <div className="glass-panel p-4 rounded-2xl border border-white/5 bg-theme-surface/60 shadow-xl flex items-center justify-between">
             <h2 className="text-lg font-extrabold text-white font-sans tracking-tight">
-              {monthNames[month]} <span className="text-purple-400 font-normal">{year}</span>
+              {monthNames[month]} <span className="text-theme-purple font-normal">{year}</span>
             </h2>
             <div className="flex gap-1">
               <button onClick={prevMonth} className="p-2 border border-white/5 bg-neutral-900/50 hover:bg-neutral-800 rounded-xl text-neutral-300 hover:text-white transition-colors">
@@ -258,7 +258,7 @@ export default function CalendarView() {
           </div>
 
           {/* Month Calendar Grid */}
-          <div className="glass-panel rounded-2xl border border-white/5 overflow-hidden shadow-2xl bg-[#141625]/30">
+          <div className="glass-panel rounded-2xl border border-white/5 overflow-hidden shadow-2xl bg-theme-surface/30">
             {/* Days of the Week Header */}
             <div className="grid grid-cols-7 border-b border-white/5 bg-neutral-950/40 text-center py-3">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
@@ -323,7 +323,7 @@ export default function CalendarView() {
       {/* MODAL: ADD EVENT */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="glass-panel-glow max-w-md w-full rounded-2xl border border-white/10 p-6 relative overflow-hidden animate-zoomIn bg-[#141625]">
+          <div className="glass-panel-glow max-w-md w-full rounded-2xl border border-white/10 p-6 relative overflow-hidden animate-zoomIn bg-theme-surface">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-base font-bold text-white flex flex-col">
@@ -437,7 +437,7 @@ export default function CalendarView() {
       {/* MODAL: EVENT DETAILS */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="glass-panel-glow max-w-sm w-full rounded-2xl border border-white/10 p-6 relative overflow-hidden animate-zoomIn bg-[#141625]">
+          <div className="glass-panel-glow max-w-sm w-full rounded-2xl border border-white/10 p-6 relative overflow-hidden animate-zoomIn bg-theme-surface">
             <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: selectedEvent.color }} />
 
             <div className="flex justify-between items-start mb-4">

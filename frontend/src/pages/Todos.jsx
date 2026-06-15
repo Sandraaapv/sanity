@@ -146,15 +146,15 @@ export default function Todos() {
   // Color dots mapping for category list cards (mocking user layout screenshots)
   const categoryDots = {
     skills: 'bg-pink-500',
-    study: 'bg-purple-500',
+    study: 'bg-theme-purple',
     shopping: 'bg-amber-500',
     work: 'bg-blue-500',
     personal: 'bg-emerald-500',
-    general: 'bg-lavender-500'
+    general: 'bg-indigo-500'
   };
 
   const getDotColor = (catName) => {
-    return categoryDots[catName.toLowerCase()] || 'bg-purple-400';
+    return categoryDots[catName.toLowerCase()] || 'bg-theme-purple';
   };
 
   return (
@@ -162,8 +162,8 @@ export default function Todos() {
       {/* Header Panel */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-purple-600/10 border border-purple-500/20 rounded-xl">
-            <ListTodo className="w-6 h-6 text-purple-400" />
+          <div className="p-2 bg-theme-purple/10 border border-theme-purple/20 rounded-xl">
+            <ListTodo className="w-6 h-6 text-theme-purple" />
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-white tracking-tight font-sans">To-Do Lists</h1>
@@ -174,9 +174,9 @@ export default function Todos() {
         {/* Add Category List Trigger */}
         <button
           onClick={() => setIsCreatingCat(!isCreatingCat)}
-          className="border border-white/5 bg-[#141625] hover:bg-neutral-800 text-neutral-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all"
+          className="border border-white/5 bg-theme-surface hover:bg-theme-surface-active text-neutral-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all"
         >
-          <PlusCircle className="w-4 h-4 text-purple-400" />
+          <PlusCircle className="w-4 h-4 text-theme-purple" />
           Add List
         </button>
       </div>
@@ -207,7 +207,7 @@ export default function Todos() {
           const isEditing = editingCat === catName;
 
           return (
-            <div key={catName} className="bg-[#141625] border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+            <div key={catName} className="bg-theme-surface border border-white/5 rounded-2xl overflow-hidden shadow-xl">
               {/* List Header */}
               <div 
                 className="p-5 flex items-center justify-between cursor-pointer select-none"
@@ -246,14 +246,14 @@ export default function Todos() {
                 <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
                   <button 
                     onClick={() => { setEditingCat(catName); setEditingCatName(catName); }}
-                    className="p-1.5 text-neutral-500 hover:text-neutral-300 rounded-lg hover:bg-neutral-800/40 transition-colors"
+                    className="p-1.5 text-neutral-500 hover:text-neutral-300 rounded-lg hover:bg-theme-surface-active/45 transition-colors"
                     title="Rename list"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     onClick={() => toggleExpand(catName)}
-                    className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/40 transition-colors"
+                    className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-theme-surface-active/45 transition-colors"
                   >
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
@@ -262,7 +262,7 @@ export default function Todos() {
 
               {/* Collapsible Content */}
               {isExpanded && (
-                <div className="px-5 pb-5 pt-1 border-t border-white/5 bg-neutral-950/20 space-y-3.5 animate-fadeIn">
+                <div className="px-5 pb-5 pt-1 border-t border-white/5 bg-theme-bg/20 space-y-3.5 animate-fadeIn">
                   {/* Task list items */}
                   <div className="space-y-2.5">
                     {listTodos.map(todo => (
@@ -309,7 +309,7 @@ export default function Todos() {
                         />
                         <button 
                           type="submit"
-                          className="absolute right-2.5 top-1.5 p-1 bg-neutral-800 text-purple-400 hover:text-white rounded-lg transition-colors"
+                          className="absolute right-2.5 top-1.5 p-1 bg-theme-surface-active text-theme-purple hover:text-white rounded-lg transition-colors"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -318,9 +318,9 @@ export default function Todos() {
                   ) : (
                     <button 
                       onClick={() => setAddingItemToCat(catName)}
-                      className="w-full border border-white/5 hover:border-white/10 hover:bg-white/5 bg-neutral-900/30 text-neutral-400 hover:text-white py-2 rounded-full text-xs font-semibold tracking-wide transition-all mt-3 flex items-center justify-center gap-1.5"
+                      className="w-full border border-white/5 hover:border-white/10 hover:bg-white/5 bg-theme-bg/30 text-neutral-400 hover:text-white py-2 rounded-full text-xs font-semibold tracking-wide transition-all mt-3 flex items-center justify-center gap-1.5"
                     >
-                      <Plus className="w-3.5 h-3.5 text-purple-450" /> Create note
+                      <Plus className="w-3.5 h-3.5 text-theme-purple" /> Create note
                     </button>
                   )}
                 </div>

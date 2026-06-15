@@ -89,7 +89,7 @@ export default function Landing({ onGetStarted }) {
       <header className="glass-panel border-b border-white/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 font-bold text-xl cursor-pointer">
-            <div className="p-1.5 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-lg">
+            <div className="p-1.5 bg-purple-gradient rounded-lg">
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-gradient-lavender tracking-tight font-extrabold text-2xl font-sans">Momentum</span>
@@ -117,8 +117,8 @@ export default function Landing({ onGetStarted }) {
         <div className="absolute top-[-50px] right-[20%] w-[350px] h-[350px] bg-purple-500/10 rounded-full blur-[90px] pointer-events-none" />
         
         {/* Subtitle tag */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-950/30 border border-purple-500/20 text-purple-300 rounded-full text-xs font-bold mb-6">
-          <Zap className="w-3 h-3 text-purple-400" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-theme-purple/10 border border-theme-purple/20 text-theme-lavender rounded-full text-xs font-bold mb-6">
+          <Zap className="w-3 h-3 text-theme-purple" />
           Introducing Momentum SaaS
         </div>
 
@@ -136,7 +136,7 @@ export default function Landing({ onGetStarted }) {
         <div className="flex flex-col sm:flex-row gap-4 mb-16">
           <button 
             onClick={onGetStarted}
-            className="bg-purple-gradient bg-purple-gradient-hover text-white font-semibold text-sm px-8 py-3.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20"
+            className="bg-purple-gradient bg-purple-gradient-hover text-white font-semibold text-sm px-8 py-3.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-theme-purple/20"
           >
             Get Started Free <ArrowRight className="w-4 h-4" />
           </button>
@@ -163,33 +163,33 @@ export default function Landing({ onGetStarted }) {
             {/* Visual dashboard segments mock */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
               {/* Collapsible todo mockup */}
-              <div className="bg-[#141625] border border-white/5 p-4 rounded-xl space-y-3">
+              <div className="bg-theme-surface border border-white/5 p-4 rounded-xl space-y-3">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2">
                   <span className="text-xs font-bold text-neutral-300">skills checklist</span>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-purple-950/40 text-purple-400 rounded font-bold border border-purple-500/20">4 of 8</span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-theme-purple/10 text-theme-purple rounded font-bold border border-theme-purple/20">4 of 8</span>
                 </div>
                 <div className="space-y-2 text-xs text-neutral-400">
                   <div className="flex items-center gap-2"><div className="w-4 h-4 border border-white/10 rounded bg-white/5" /><span>js framework configurations</span></div>
                   <div className="flex items-center gap-2"><div className="w-4 h-4 border border-white/10 rounded bg-white/5" /><span>react state machines</span></div>
-                  <div className="flex items-center gap-2 text-neutral-500 line-through"><div className="w-4 h-4 border border-purple-500/30 rounded bg-purple-950/30 flex items-center justify-center text-[10px] text-purple-400">✓</div><span>html specifications</span></div>
-                  <div className="flex items-center gap-2 text-neutral-500 line-through"><div className="w-4 h-4 border border-purple-500/30 rounded bg-purple-950/30 flex items-center justify-center text-[10px] text-purple-400">✓</div><span>sql schemas</span></div>
+                  <div className="flex items-center gap-2 text-neutral-500 line-through"><div className="w-4 h-4 border border-theme-purple/30 rounded bg-theme-purple/10 flex items-center justify-center text-[10px] text-theme-purple">✓</div><span>html specifications</span></div>
+                  <div className="flex items-center gap-2 text-neutral-500 line-through"><div className="w-4 h-4 border border-theme-purple/30 rounded bg-theme-purple/10 flex items-center justify-center text-[10px] text-theme-purple">✓</div><span>sql schemas</span></div>
                 </div>
               </div>
 
               {/* Keep notes mock */}
-              <div className="bg-[#141625] border border-white/5 p-4 rounded-xl space-y-2 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-8 h-8 bg-purple-500/10 rounded-full blur-sm" />
+              <div className="bg-theme-surface border border-white/5 p-4 rounded-xl space-y-2 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-8 h-8 bg-theme-purple/10 rounded-full blur-sm" />
                 <div className="text-[10px] text-neutral-500 font-bold">13 Jun • 15:07</div>
                 <h4 className="text-xs font-bold text-white">AI startup buildathon</h4>
                 <p className="text-[11px] text-neutral-400 leading-relaxed">Discuss last registration date on June 14, draft prototype, and configure backend database entities.</p>
               </div>
 
               {/* Monthly calendar mock */}
-              <div className="bg-[#141625] border border-white/5 p-4 rounded-xl space-y-2">
+              <div className="bg-theme-surface border border-white/5 p-4 rounded-xl space-y-2">
                 <div className="text-xs font-bold text-neutral-300">calendar agenda</div>
                 <div className="space-y-1.5">
                   <div className="p-1.5 bg-blue-600/10 border border-blue-500/20 rounded text-[10px] text-blue-400 font-bold truncate">09:00 - Meeting with Main Agent</div>
-                  <div className="p-1.5 bg-purple-600/10 border border-purple-500/20 rounded text-[10px] text-purple-400 font-bold truncate">14:00 - Prototype Demo Sync</div>
+                  <div className="p-1.5 bg-theme-purple/10 border border-theme-purple/20 rounded text-[10px] text-theme-purple font-bold truncate">14:00 - Prototype Demo Sync</div>
                 </div>
               </div>
             </div>
@@ -208,8 +208,8 @@ export default function Landing({ onGetStarted }) {
           {features.map((feat, idx) => {
             const Icon = feat.icon;
             return (
-              <div key={idx} className="bg-[#141625] border border-white/5 p-8 rounded-2xl hover:border-purple-500/30 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 group">
-                <div className="p-3 bg-purple-950/30 border border-purple-500/20 text-purple-400 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
+              <div key={idx} className="bg-theme-surface border border-white/5 p-8 rounded-2xl hover:border-theme-purple/30 hover:shadow-xl hover:shadow-theme-purple/5 transition-all duration-300 group">
+                <div className="p-3 bg-theme-purple/10 border border-theme-purple/20 text-theme-purple rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
                   <Icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">{feat.title}</h3>
@@ -226,7 +226,7 @@ export default function Landing({ onGetStarted }) {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
           <div className="lg:col-span-1 space-y-4">
-            <div className="text-purple-400 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
+            <div className="text-theme-purple text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
               <Activity className="w-4 h-4" /> Live Productivity Metrics
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">Quantify your execution speed.</h2>
@@ -236,7 +236,7 @@ export default function Landing({ onGetStarted }) {
           <div className="lg:col-span-2 grid grid-cols-2 gap-4">
             {stats.map((s, idx) => (
               <div key={idx} className="glass-panel p-6 rounded-2xl border border-white/5">
-                <div className="text-3xl sm:text-4xl font-extrabold text-purple-400 mb-2">{s.value}</div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-theme-purple mb-2">{s.value}</div>
                 <div className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{s.label}</div>
               </div>
             ))}
@@ -270,15 +270,15 @@ export default function Landing({ onGetStarted }) {
             }
           ].map((item, idx) => (
             <div key={idx} className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col justify-between shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 text-purple-500/20 font-serif text-6xl select-none leading-none">“</div>
+              <div className="absolute top-0 right-0 p-4 text-theme-purple/20 font-serif text-6xl select-none leading-none">“</div>
               <div className="space-y-4">
                 <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-purple-400 text-purple-400" />)}
+                  {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-theme-purple text-theme-purple" />)}
                 </div>
                 <p className="text-neutral-300 text-xs leading-relaxed italic">"{item.quote}"</p>
               </div>
               <div className="mt-6 border-t border-white/5 pt-4 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+                <div className="w-8 h-8 rounded-full bg-purple-gradient text-white flex items-center justify-center text-[10px] font-bold">
                   {item.author.charAt(0)}
                 </div>
                 <div>
@@ -306,12 +306,12 @@ export default function Landing({ onGetStarted }) {
               key={idx} 
               className={`flex flex-col justify-between p-8 rounded-2xl transition-all duration-300 ${
                 tier.highlighted 
-                  ? 'bg-[#141625] border-2 border-purple-500 shadow-2xl shadow-purple-500/10 scale-[1.03] relative' 
+                  ? 'bg-theme-surface border-2 border-theme-purple shadow-2xl shadow-theme-purple/10 scale-[1.03] relative' 
                   : 'bg-neutral-900/40 border border-white/5'
               }`}
             >
               {tier.highlighted && (
-                <span className="absolute top-0 right-1/2 transform translate-x-1/2 -translate-y-1/2 bg-purple-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+                <span className="absolute top-0 right-1/2 transform translate-x-1/2 -translate-y-1/2 bg-theme-purple text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
                   Popular Plan
                 </span>
               )}
@@ -328,7 +328,7 @@ export default function Landing({ onGetStarted }) {
                 <ul className="space-y-3 text-xs text-neutral-300">
                   {tier.features.map((f, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-theme-purple flex-shrink-0" />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -339,7 +339,7 @@ export default function Landing({ onGetStarted }) {
                 onClick={onGetStarted}
                 className={`w-full py-3 rounded-xl font-bold text-xs transition-all mt-8 ${
                   tier.highlighted 
-                    ? 'bg-purple-gradient bg-purple-gradient-hover text-white shadow shadow-purple-500/20' 
+                    ? 'bg-purple-gradient bg-purple-gradient-hover text-white shadow shadow-theme-purple/20' 
                     : 'border border-white/10 hover:border-white/20 bg-neutral-950 text-white'
                 }`}
               >
@@ -364,7 +364,7 @@ export default function Landing({ onGetStarted }) {
                   className="w-full flex items-center justify-between p-5 text-left font-bold text-sm text-neutral-200 hover:text-white transition-colors"
                 >
                   <span>{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${isOpen ? 'transform rotate-180 text-purple-400' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${isOpen ? 'transform rotate-180 text-theme-purple' : ''}`} />
                 </button>
                 {isOpen && (
                   <div className="p-5 pt-0 text-xs text-neutral-400 border-t border-white/5 leading-relaxed bg-neutral-950/20 animate-fadeIn">
@@ -378,11 +378,11 @@ export default function Landing({ onGetStarted }) {
       </section>
 
       {/* 7. MODERN FOOTER */}
-      <footer className="border-t border-white/5 bg-[#050505] relative py-12 px-6">
+      <footer className="border-t border-white/5 bg-theme-bg relative py-12 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-2 font-bold text-xl">
-              <div className="p-1.5 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-purple-gradient rounded-lg">
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <span className="text-gradient-lavender tracking-tight font-extrabold text-2xl font-sans">Momentum</span>
