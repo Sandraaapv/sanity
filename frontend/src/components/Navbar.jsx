@@ -1,23 +1,25 @@
 import React from 'react';
-import { CheckSquare, FileText, Calendar, User, LogOut, Moon, Sun } from 'lucide-react';
+import { CheckSquare, FileText, Calendar, User, LogOut, Moon, Sun, Zap } from 'lucide-react';
 
 export default function Navbar({ currentTab, setCurrentTab, user, onLogout, theme, toggleTheme }) {
   const menuItems = [
-    { id: 'todos', name: 'Todos', icon: CheckSquare },
+    { id: 'todos', name: 'To-Do Lists', icon: CheckSquare },
     { id: 'notes', name: 'Notes', icon: FileText },
     { id: 'calendar', name: 'Calendar', icon: Calendar },
     { id: 'profile', name: 'Profile', icon: User },
   ];
 
   return (
-    <nav className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-3 flex justify-between items-center">
-      <div className="flex items-center gap-2 font-bold text-xl text-blue-600 dark:text-blue-400">
-        <CheckSquare className="w-6 h-6" />
-        <span>ProductivityHub</span>
+    <nav className="glass-panel border-b border-neutral-800/70 px-6 py-3.5 flex justify-between items-center sticky top-0 z-50">
+      <div className="flex items-center gap-2 font-bold text-xl cursor-pointer" onClick={() => setCurrentTab('todos')}>
+        <div className="p-1.5 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-lg shadow-lg shadow-blue-500/20">
+          <Zap className="w-5 h-5 text-white" />
+        </div>
+        <span className="text-gradient-primary tracking-tight font-extrabold text-2xl font-sans">Momentum</span>
       </div>
       
       <div className="flex items-center gap-6">
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = currentTab === item.id;
@@ -25,37 +27,45 @@ export default function Navbar({ currentTab, setCurrentTab, user, onLogout, them
               <button
                 key={item.id}
                 onClick={() => setCurrentTab(item.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   active 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400' 
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    ? 'bg-neutral-800/60 text-white shadow-inner border border-neutral-700/50' 
+                    : 'text-neutral-400 hover:text-white hover:bg-neutral-900/40'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={`w-4 h-4 ${active ? 'text-blue-400' : 'text-neutral-400'}`} />
                 {item.name}
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center gap-4 border-l border-slate-200 dark:border-slate-700 pl-4">
-          <button onClick={toggleTheme} className="text-slate-600 dark:text-slate-300 hover:text-blue-600">
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        <div className="flex items-center gap-4 border-l border-neutral-800/80 pl-4">
+          <button 
+            onClick={toggleTheme} 
+            className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-900/40 rounded-lg transition-colors"
+            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-neutral-900/40 border border-neutral-800/40 rounded-lg py-1 px-2.5">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="avatar" className="w-8 h-8 rounded-full object-cover border border-slate-300" />
+              <img src={user.avatarUrl} alt="avatar" className="w-6 h-6 rounded-full object-cover border border-neutral-700" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
                 {user?.displayName?.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="text-sm font-medium dark:text-slate-200">{user?.displayName}</span>
+            <span className="text-xs font-semibold text-neutral-300 hidden md:inline">{user?.displayName}</span>
           </div>
 
-          <button onClick={onLogout} className="text-slate-400 hover:text-red-500 transition-colors" title="Log Out">
-            <LogOut className="w-5 h-5" />
+          <button 
+            onClick={onLogout} 
+            className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-950/20 rounded-lg transition-colors" 
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>

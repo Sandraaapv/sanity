@@ -31,6 +31,7 @@ public class TodoService {
                 .completed(dto.isCompleted())
                 .priority(Priority.valueOf(dto.getPriority()))
                 .dueDate(dto.getDueDate())
+                .category(dto.getCategory() != null ? dto.getCategory() : "General")
                 .build();
         return mapToDto(todoRepository.save(todo));
     }
@@ -42,6 +43,9 @@ public class TodoService {
         todo.setCompleted(dto.isCompleted());
         todo.setPriority(Priority.valueOf(dto.getPriority()));
         todo.setDueDate(dto.getDueDate());
+        if (dto.getCategory() != null) {
+            todo.setCategory(dto.getCategory());
+        }
         return mapToDto(todoRepository.save(todo));
     }
 
@@ -57,6 +61,7 @@ public class TodoService {
                 .completed(t.isCompleted())
                 .priority(t.getPriority().name())
                 .dueDate(t.getDueDate())
+                .category(t.getCategory())
                 .build();
     }
 }

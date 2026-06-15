@@ -35,6 +35,10 @@ public class Todo {
 
     private LocalDateTime dueDate;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private String category = "General";
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

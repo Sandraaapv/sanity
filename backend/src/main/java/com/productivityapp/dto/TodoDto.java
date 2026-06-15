@@ -17,4 +17,5 @@ public class TodoDto {
     private boolean completed;
     private String priority; // low, medium, high
     private LocalDateTime dueDate;
+    private String category;
 }

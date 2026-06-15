@@ -11,9 +11,11 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('todos');
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
+    // Ensure dark mode is active on mount
+    document.documentElement.classList.add('dark');
     checkLoggedSession();
   }, []);
 
@@ -26,7 +28,7 @@ export default function App() {
     try {
       const res = await api.get('/api/user/me');
       setUser(res.data);
-      applyTheme(res.data.themePreference);
+      applyTheme(res.data.themePreference || 'dark');
     } catch (err) {
       localStorage.removeItem('token');
     } finally {
@@ -35,8 +37,9 @@ export default function App() {
   };
 
   const applyTheme = (mode) => {
-    setTheme(mode);
-    if (mode === 'dark') {
+    const activeMode = mode || 'dark';
+    setTheme(activeMode);
+    if (activeMode === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
