@@ -30,6 +30,7 @@ public class NoteService {
                 .content(dto.getContent())
                 .color(dto.getColor())
                 .isPinned(dto.isPinned())
+                .category(dto.getCategory() != null ? dto.getCategory() : "General")
                 .build();
         return mapToDto(noteRepository.save(note));
     }
@@ -40,6 +41,9 @@ public class NoteService {
         note.setContent(dto.getContent());
         note.setColor(dto.getColor());
         note.setPinned(dto.isPinned());
+        if (dto.getCategory() != null) {
+            note.setCategory(dto.getCategory());
+        }
         return mapToDto(noteRepository.save(note));
     }
 
@@ -51,6 +55,7 @@ public class NoteService {
         return NoteDto.builder()
                 .id(n.getId()).title(n.getTitle()).content(n.getContent())
                 .color(n.getColor()).isPinned(n.isPinned())
+                .category(n.getCategory())
                 .build();
     }
 }

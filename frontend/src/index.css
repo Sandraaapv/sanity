@@ -3,16 +3,27 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-dark: #050505;
+    --bg-navy: #0E1020;
+    --bg-surface: #141625;
+    --accent-purple: #8B7CF6;
+    --light-lavender: #C7BDFD;
+    --muted-gray: #9CA3AF;
+    --text-primary: #FFFFFF;
+    --text-secondary: #B8BCC8;
+  }
+
   body {
     margin: 0;
-    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #07070a;
+    font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif;
+    background-color: var(--bg-dark);
     background-image: 
-      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(147, 51, 234, 0.08) 0px, transparent 50%),
-      radial-gradient(at 50% 0%, rgba(30, 41, 59, 0.25) 0px, transparent 60%);
+      radial-gradient(at 100% 0%, rgba(139, 124, 246, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(30, 20, 80, 0.25) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(14, 16, 32, 0.5) 0px, transparent 80%);
     background-attachment: fixed;
-    color: #f8fafc;
+    color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -24,56 +35,111 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #07070a;
+  background: var(--bg-dark);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e1e2d;
+  background: #222538;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #31314d;
+  background: var(--accent-purple);
 }
 
-/* Glassmorphism utility classes */
+/* Glowing & Glass utilities */
 .glass-panel {
-  background: rgba(15, 15, 22, 0.55);
+  background: rgba(20, 22, 37, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .glass-panel-glow {
-  background: rgba(12, 12, 18, 0.7);
+  background: rgba(14, 16, 32, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), 
-              0 0 50px rgba(59, 130, 246, 0.04);
+  border: 1px solid rgba(139, 124, 246, 0.12);
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.5), 
+              0 0 50px rgba(139, 124, 246, 0.03);
 }
 
 .glass-input {
-  background: rgba(20, 20, 30, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  color: #f8fafc;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(14, 16, 32, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-input:focus {
   outline: none;
-  border-color: rgba(59, 130, 246, 0.45);
-  box-shadow: 0 0 14px rgba(59, 130, 246, 0.2);
-  background: rgba(15, 15, 22, 0.75);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 16px rgba(139, 124, 246, 0.25);
+  background: rgba(20, 22, 37, 0.8);
 }
 
-/* Accent gradients */
-.text-gradient {
-  background: linear-gradient(135deg, #f8fafc 30%, #94a3b8 100%);
+/* Gradients */
+.text-gradient-lavender {
+  background: linear-gradient(135deg, #FFFFFF 20%, #C7BDFD 60%, #8B7CF6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.text-gradient-primary {
-  background: linear-gradient(135deg, #ffffff 10%, #60a5fa 60%, #c084fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.bg-purple-gradient {
+  background: linear-gradient(135deg, #8B7CF6 0%, #6355d9 100%);
+}
+
+.bg-purple-gradient-hover:hover {
+  background: linear-gradient(135deg, #a79af8 0%, #7567e5 100%);
+  box-shadow: 0 0 20px rgba(139, 124, 246, 0.35);
+}
+
+/* Background Grid Pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+}
+
+/* Keyframes and animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-zoomIn {
+  animation: zoomIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Custom Checkbox toggle */
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #3c3c52;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(14, 16, 32, 0.5);
+}
+
+.custom-checkbox:hover {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 8px rgba(139, 124, 246, 0.15);
+}
+
+.custom-checkbox.checked {
+  border-color: var(--accent-purple);
+  background: rgba(139, 124, 246, 0.1);
+  color: var(--light-lavender);
 }

@@ -25,7 +25,7 @@ export default function Auth({ onAuthSuccess }) {
       if (err.response && err.response.data) {
         setErrors(typeof err.response.data === 'object' ? err.response.data : { global: 'Authentication failed.' });
       } else {
-        setErrors({ global: 'Network connection error. Check if the backend is running.' });
+        setErrors({ global: 'Network connection error.' });
       }
     } finally {
       setSubmitting(false);
@@ -33,118 +33,112 @@ export default function Auth({ onAuthSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
-      {/* Decorative blurred backgrounds */}
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
+    <div className="w-full relative">
+      {/* Decorative glows */}
+      <div className="absolute -top-12 -left-12 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Main Container */}
-      <div className="w-full max-w-md z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-8 flex flex-col items-center">
-          <div className="p-3 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl shadow-xl shadow-blue-500/20 mb-3 animate-pulse">
-            <Zap className="w-8 h-8 text-white" />
+      {/* Auth Glass Card */}
+      <div className="glass-panel-glow p-8 rounded-2xl border border-white/10 relative z-10 w-full bg-[#141625]/90">
+        <div className="text-center mb-6 flex flex-col items-center">
+          <div className="p-2.5 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-xl shadow-lg mb-2">
+            <Zap className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-gradient-primary tracking-tight font-extrabold text-4xl mb-2">Momentum</h1>
-          <p className="text-neutral-400 text-sm font-medium">Streamline your thoughts, schedules, and workflows.</p>
+          <h2 className="text-gradient-lavender tracking-tight font-extrabold text-2xl">
+            {isLogin ? 'Sign In to Momentum' : 'Create Workspace'}
+          </h2>
+          <p className="text-neutral-400 text-xs mt-1">Access your unified productivity dashboard</p>
         </div>
 
-        {/* Auth Glass Card */}
-        <div className="glass-panel-glow p-8 rounded-2xl border border-neutral-800/80">
-          <h2 className="text-xl font-bold mb-6 text-white text-center">
-            {isLogin ? 'Welcome back' : 'Create your workspace'}
-          </h2>
+        {errors.error && <div className="mb-4 p-3.5 bg-red-950/40 border border-red-900/40 text-red-400 text-xs rounded-xl">{errors.error}</div>}
+        {errors.global && <div className="mb-4 p-3.5 bg-red-950/40 border border-red-900/40 text-red-400 text-xs rounded-xl">{errors.global}</div>}
 
-          {errors.error && <div className="mb-4 p-3.5 bg-red-950/40 border border-red-900/50 text-red-400 text-xs rounded-lg">{errors.error}</div>}
-          {errors.global && <div className="mb-4 p-3.5 bg-red-950/40 border border-red-900/50 text-red-400 text-xs rounded-lg">{errors.global}</div>}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
-            <div>
-              <label className="block text-xs font-semibold text-neutral-400 mb-1.5 uppercase tracking-wider">Username</label>
-              <div className="relative">
-                <UserIcon className="w-4 h-4 absolute left-3.5 top-3.5 text-neutral-500" />
-                <input
-                  type="text" required
-                  placeholder="john_doe"
-                  className="w-full glass-input rounded-xl pl-10 pr-4 py-3 text-sm"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                />
-              </div>
-              {errors.username && <span className="text-xs text-red-400 mt-1 block">{errors.username}</span>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username */}
+          <div>
+            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Username</label>
+            <div className="relative">
+              <UserIcon className="w-4 h-4 absolute left-3.5 top-3 text-neutral-500" />
+              <input
+                type="text" required
+                placeholder="username"
+                className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              />
             </div>
-
-            {/* Registration specific fields */}
-            {!isLogin && (
-              <>
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-400 mb-1.5 uppercase tracking-wider">Email Address</label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-neutral-500" />
-                    <input
-                      type="email" required
-                      placeholder="you@example.com"
-                      className="w-full glass-input rounded-xl pl-10 pr-4 py-3 text-sm"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-                  {errors.email && <span className="text-xs text-red-400 mt-1 block">{errors.email}</span>}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-400 mb-1.5 uppercase tracking-wider">Display Name</label>
-                  <div className="relative">
-                    <UserIcon className="w-4 h-4 absolute left-3.5 top-3.5 text-neutral-500" />
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      className="w-full glass-input rounded-xl pl-10 pr-4 py-3 text-sm"
-                      value={formData.displayName}
-                      onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-semibold text-neutral-400 mb-1.5 uppercase tracking-wider">Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-neutral-500" />
-                <input
-                  type="password" required
-                  placeholder="••••••••"
-                  className="w-full glass-input rounded-xl pl-10 pr-4 py-3 text-sm"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                />
-              </div>
-              {errors.password && <span className="text-xs text-red-400 mt-1 block">{errors.password}</span>}
-            </div>
-
-            {/* Action button */}
-            <button 
-              type="submit" 
-              disabled={submitting}
-              className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 mt-6 flex items-center justify-center gap-1.5 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50"
-            >
-              {submitting ? 'Authenticating...' : (isLogin ? 'Sign In' : 'Create Workspace')}
-              {!submitting && <ArrowRight className="w-4 h-4" />}
-            </button>
-          </form>
-
-          {/* Footer toggle */}
-          <div className="mt-6 text-center text-sm text-neutral-400 font-medium">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button 
-              onClick={() => { setIsLogin(!isLogin); setErrors({}); }} 
-              className="text-blue-400 hover:text-blue-300 font-bold hover:underline"
-            >
-              {isLogin ? 'Sign Up' : 'Sign In'}
-            </button>
+            {errors.username && <span className="text-xs text-red-400 mt-1 block">{errors.username}</span>}
           </div>
+
+          {/* Registration specific fields */}
+          {!isLogin && (
+            <>
+              <div>
+                <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Email Address</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-3 text-neutral-500" />
+                  <input
+                    type="email" required
+                    placeholder="you@domain.com"
+                    className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+                {errors.email && <span className="text-xs text-red-400 mt-1 block">{errors.email}</span>}
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Display Name</label>
+                <div className="relative">
+                  <UserIcon className="w-4 h-4 absolute left-3.5 top-3 text-neutral-500" />
+                  <input
+                    type="text"
+                    placeholder="Display Name"
+                    className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                    value={formData.displayName}
+                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Password */}
+          <div>
+            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Password</label>
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3.5 top-3 text-neutral-500" />
+              <input
+                type="password" required
+                placeholder="••••••••"
+                className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+            {errors.password && <span className="text-xs text-red-400 mt-1 block">{errors.password}</span>}
+          </div>
+
+          {/* Action button */}
+          <button 
+            type="submit" 
+            disabled={submitting}
+            className="w-full bg-purple-gradient bg-purple-gradient-hover text-white py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 mt-6 flex items-center justify-center gap-1.5 shadow-lg shadow-purple-500/10 disabled:opacity-50"
+          >
+            {submitting ? 'Authenticating...' : (isLogin ? 'Sign In' : 'Create Workspace')}
+            {!submitting && <ArrowRight className="w-4 h-4 text-purple-200" />}
+          </button>
+        </form>
+
+        {/* Footer toggle */}
+        <div className="mt-6 text-center text-xs text-neutral-400 font-medium">
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button 
+            onClick={() => { setIsLogin(!isLogin); setErrors({}); }} 
+            className="text-purple-400 hover:text-purple-300 font-bold hover:underline"
+          >
+            {isLogin ? 'Sign Up' : 'Sign In'}
+          </button>
         </div>
       </div>
     </div>

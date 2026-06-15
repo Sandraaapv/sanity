@@ -15,4 +15,5 @@ public class NoteDto {
     private String content;
     private String color;
     private boolean isPinned;
+    private String category;
 }

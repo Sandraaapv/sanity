@@ -33,6 +33,10 @@ public class Note {
     @Builder.Default
     private boolean isPinned = false;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private String category = "General";
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
