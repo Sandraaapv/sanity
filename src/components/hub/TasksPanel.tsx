@@ -744,7 +744,7 @@ export function TasksPanel() {
                 <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
                   New Category
                 </h4>
-                <div className="space-y-1">
+                <div className="space-y-3">
                   <input
                     required
                     value={newDeadlineCat.name}
@@ -752,21 +752,19 @@ export function TasksPanel() {
                     placeholder="e.g. Studies, Work, Personal"
                     className="w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-lavender/60 text-foreground"
                   />
-                </div>
-                <div className="flex gap-2 items-center">
                   <input
                     type="date"
                     required
                     value={newDeadlineCat.deadline}
                     onChange={(e) => setNewDeadlineCat((p) => ({ ...p, deadline: e.target.value }))}
-                    className="bg-input/40 border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-lavender/60 text-foreground flex-1"
+                    className="w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-lavender/60 text-foreground text-left"
                   />
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl text-sm font-semibold text-[#1a1a1a] shadow-md transition hover:scale-105 active:scale-95 shrink-0"
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold text-[#1a1a1a] shadow-md transition hover:scale-[1.01] active:scale-95"
                     style={{ backgroundImage: "var(--gradient-accent)" }}
                   >
-                    Create
+                    Create Category
                   </button>
                 </div>
               </form>
