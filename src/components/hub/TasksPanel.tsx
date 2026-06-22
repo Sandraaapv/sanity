@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   MoreVertical,
   RotateCcw,
-  Palette,
   Square,
   CheckSquare,
   ChevronLeft,
@@ -15,10 +14,10 @@ import {
   X,
   Play,
   Pause,
-  FolderOpen
+  FolderOpen,
+  AlertTriangle
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { useTheme } from "./theme";
 
 type Priority = "low" | "medium" | "high";
 
@@ -86,8 +85,6 @@ const getWeekDays = (date: Date) => {
 };
 
 export function TasksPanel() {
-  const { theme, setTheme } = useTheme();
-  
   // Tasks and categories states
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -98,14 +95,15 @@ export function TasksPanel() {
   const selectedDateStr = useMemo(() => toDateStr(selectedDate), [selectedDate]);
   const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
 
-  // Inline task adding states
+  // Inline task adding states (tracks category ID being edited)
   const [inlineAddCatId, setInlineAddCatId] = useState<string | null>(null);
   const [inlineAddTitle, setInlineAddTitle] = useState("");
 
   // New category creation states
-  const [newCat, setNewCat] = useState({ name: "", deadline: "" });
+  const [newDailyCatName, setNewDailyCatName] = useState("");
+  const [newDeadlineCat, setNewDeadlineCat] = useState({ name: "", deadline: "" });
 
-  // Popover menus state
+  // Popover options menus state
   const [activeMenuCatId, setActiveMenuCatId] = useState<string | null>(null);
 
   // Pomodoro Focus Mode states
@@ -150,10 +148,6 @@ export function TasksPanel() {
     return `${String(mins).padStart(2, "0")}:${String(remainingSecs).padStart(2, "0")}`;
   };
 
-  const cycleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   const load = async () => {
     setLoading(true);
     try {
@@ -182,18 +176,35 @@ export function TasksPanel() {
   }, []);
 
   // Category Actions
-  const handleAddCategory = async (e: React.FormEvent) => {
+  const handleAddDailyCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCat.name.trim()) return;
+    if (!newDailyCatName.trim()) return;
     const color = categoryPalette[categories.length % categoryPalette.length];
     try {
       const { data } = await api.post("/task-categories", {
-        name: newCat.name.trim(),
+        name: newDailyCatName.trim(),
         color,
-        deadline: toLocalMidnightISO(newCat.deadline),
+        deadline: null,
       });
       setCategories((p) => [...p, data as Category]);
-      setNewCat({ name: "", deadline: "" });
+      setNewDailyCatName("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddDeadlineCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDeadlineCat.name.trim() || !newDeadlineCat.deadline) return;
+    const color = categoryPalette[categories.length % categoryPalette.length];
+    try {
+      const { data } = await api.post("/task-categories", {
+        name: newDeadlineCat.name.trim(),
+        color,
+        deadline: toLocalMidnightISO(newDeadlineCat.deadline),
+      });
+      setCategories((p) => [...p, data as Category]);
+      setNewDeadlineCat({ name: "", deadline: "" });
     } catch (err) {
       console.error(err);
     }
@@ -211,14 +222,15 @@ export function TasksPanel() {
   };
 
   // Inline Task Adding Actions
-  const handleAddTaskInline = async (catId: string) => {
+  const handleAddTaskInline = async (catId: string, isDeadlineCat: boolean) => {
     if (!inlineAddTitle.trim()) return;
     try {
       const { data } = await api.post("/tasks", {
         categoryId: catId,
         title: inlineAddTitle.trim(),
         priority: "medium",
-        dueDate: selectedDateStr,
+        // Deadline categories have static tasks (due_date is null), daily categories are scheduled
+        dueDate: isDeadlineCat ? null : selectedDateStr,
       });
       setTasks((p) => [...p, data as Task]);
       setInlineAddTitle("");
@@ -236,7 +248,7 @@ export function TasksPanel() {
     nextDay.setDate(selectedDate.getDate() + 1);
     const nextDayStr = toDateStr(nextDay);
     
-    // Update local state instantly for response responsiveness
+    // Update local state instantly for responsiveness
     setTasks(p => p.map(t => {
       if (t.category_id === catId && t.due_date === selectedDateStr && !t.completed) {
         return { ...t, due_date: nextDayStr };
@@ -274,7 +286,11 @@ export function TasksPanel() {
     }
   };
 
-  // Filter tasks for selected date
+  // Filter categories
+  const dailyCategories = useMemo(() => categories.filter(c => !c.deadline), [categories]);
+  const deadlineCategories = useMemo(() => categories.filter(c => c.deadline), [categories]);
+
+  // Filter tasks for selected date (only for daily categories)
   const selectedDateTasks = useMemo(() => {
     return tasks.filter((t) => t.due_date === selectedDateStr);
   }, [tasks, selectedDateStr]);
@@ -288,13 +304,21 @@ export function TasksPanel() {
     return `${count} task${count === 1 ? "" : "s"} ${isTodaySelected ? "for today" : "scheduled"}`;
   }, [selectedDateTasks, isTodaySelected]);
 
+  const deadlineMeta = (iso: string | null) => {
+    if (!iso) return null;
+    const ms = new Date(iso).getTime() - Date.now();
+    const days = Math.round(ms / 86400000);
+    const overdue = ms < 0;
+    return { days, overdue };
+  };
+
   return (
     <div className="relative min-h-[500px]">
       {/* ---------------- NORMAL CALENDAR MODE ---------------- */}
       {!focusMode ? (
         <div className="max-w-5xl mx-auto grid gap-8 md:grid-cols-[1fr_300px] animate-in fade-in slide-in-from-bottom-4 duration-300">
           
-          {/* LEFT COLUMN: Daily planner categories and tasks */}
+          {/* LEFT COLUMN: Daily planner categories, breakline, and static deadlines */}
           <div className="space-y-6">
             
             {/* HEADER ROW */}
@@ -349,14 +373,6 @@ export function TasksPanel() {
                 >
                   <Clock className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={cycleTheme}
-                  className="p-2 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-foreground transition"
-                  aria-label="Toggle theme"
-                  title="Cycle Theme"
-                >
-                  <Palette className="w-4 h-4" />
-                </button>
               </div>
             </div>
 
@@ -381,8 +397,8 @@ export function TasksPanel() {
                       <span
                         className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-full transition-all ${
                           isSelected
-                            ? "bg-rose-gold text-background shadow-lg scale-105"
-                            : "text-foreground group-hover:text-rose-gold"
+                            ? "bg-lavender text-[#1a1a1a] shadow-lg scale-105 font-bold"
+                            : "text-foreground group-hover:text-lavender"
                         }`}
                       >
                         {dateNum}
@@ -396,9 +412,9 @@ export function TasksPanel() {
               </div>
             </div>
 
-            {/* CATEGORIES SECTIONS */}
-            <div className="space-y-6 pt-2 pb-16">
-              {categories.map((c) => {
+            {/* DAILY TO DO CATEGORIES */}
+            <div className="space-y-6 pt-2">
+              {dailyCategories.map((c) => {
                 const catTasks = selectedDateTasks.filter((t) => t.category_id === c.id);
                 const isAdding = inlineAddCatId === c.id;
 
@@ -434,7 +450,6 @@ export function TasksPanel() {
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                         
-                        {/* Three-dot dropdown trigger */}
                         <div className="relative">
                           <button
                             onClick={() => setActiveMenuCatId(activeMenuCatId === c.id ? null : c.id)}
@@ -465,17 +480,17 @@ export function TasksPanel() {
                     {/* Inline Task Add Field */}
                     {isAdding && (
                       <div className="relative mt-2 p-1">
-                        <label className="absolute -top-2 left-3 px-1 text-[9px] font-bold text-rose-gold bg-background z-10">
+                        <label className="absolute -top-2 left-3 px-1 text-[9px] font-bold text-lavender bg-background z-10">
                           New Task
                         </label>
-                        <div className="flex items-center gap-2 border border-rose-gold/50 rounded-xl px-3 py-2 bg-input/10">
+                        <div className="flex items-center gap-2 border border-lavender/50 rounded-xl px-3 py-2 bg-input/10">
                           <input
                             autoFocus
                             value={inlineAddTitle}
                             onChange={(e) => setInlineAddTitle(e.target.value)}
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
-                                handleAddTaskInline(c.id);
+                                handleAddTaskInline(c.id, false);
                               }
                             }}
                             placeholder="Type a task name and press Enter..."
@@ -503,11 +518,11 @@ export function TasksPanel() {
                         >
                           <button
                             onClick={() => toggleTaskCompleted(t)}
-                            className="text-muted-foreground hover:text-rose-gold transition shrink-0"
+                            className="text-muted-foreground hover:text-lavender transition shrink-0"
                             aria-label="Toggle completed"
                           >
                             {t.completed ? (
-                              <CheckSquare className="w-4 h-4 text-rose-gold" />
+                              <CheckSquare className="w-4 h-4 text-lavender" />
                             ) : (
                               <Square className="w-4 h-4" />
                             )}
@@ -545,52 +560,243 @@ export function TasksPanel() {
                 );
               })}
 
-              {!loading && categories.length === 0 && (
-                <div className="glass rounded-2xl p-8 text-center space-y-4">
+              {!loading && dailyCategories.length === 0 && (
+                <div className="glass rounded-2xl p-8 text-center space-y-2">
                   <FolderOpen className="w-8 h-8 text-muted-foreground/60 mx-auto" />
                   <div className="space-y-1">
-                    <h4 className="font-semibold text-sm">No categories yet</h4>
+                    <h4 className="font-semibold text-sm">No daily categories yet</h4>
                     <p className="text-xs text-muted-foreground">
-                      To start scheduling tasks, you must create a category context first.
+                      Use the "New Daily Category" form on the side to create one.
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
+            {/* BREAKLINE DIVIDER */}
+            <hr className="border-t border-border/80 my-10" />
+
+            {/* DEADLINES SECTION (STATIC REGARDLESS OF CALENDAR SELECTION) */}
+            <div className="space-y-6 pb-20">
+              <h3 className="text-lg font-black uppercase tracking-wider text-muted-foreground/80">
+                Deadlines
+              </h3>
+
+              {deadlineCategories.map((c) => {
+                // Deadline categories show all tasks assigned to them (not date specific)
+                const catTasks = tasks.filter((t) => t.category_id === c.id);
+                const isAdding = inlineAddCatId === c.id;
+                const dm = deadlineMeta(c.deadline);
+
+                return (
+                  <div key={c.id} className="space-y-2">
+                    
+                    {/* Category Title & Actions Row */}
+                    <div className="flex items-center justify-between relative">
+                      <div className="flex items-center gap-3">
+                        <h4 className="text-sm font-bold lowercase tracking-wider flex items-center gap-2 text-foreground">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: c.color }}
+                          />
+                          {c.name}
+                        </h4>
+                        
+                        {c.deadline && (
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                            dm?.overdue 
+                              ? "border-destructive/30 bg-destructive/10 text-destructive"
+                              : "border-lavender/30 bg-lavender/10 text-lavender"
+                          }`}>
+                            {dm?.overdue 
+                              ? `overdue by ${Math.abs(dm.days)}d` 
+                              : dm?.days === 0 
+                              ? "due today" 
+                              : `${dm?.days}d left`}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setInlineAddCatId(isAdding ? null : c.id);
+                            setInlineAddTitle("");
+                          }}
+                          className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
+                          title="Add task inline"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        
+                        <div className="relative">
+                          <button
+                            onClick={() => setActiveMenuCatId(activeMenuCatId === c.id ? null : c.id)}
+                            className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
+                            title="Category options"
+                          >
+                            <MoreVertical className="w-3.5 h-3.5" />
+                          </button>
+                          {activeMenuCatId === c.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setActiveMenuCatId(null)} />
+                              <div className="absolute right-0 mt-1 w-32 glass rounded-lg py-1 shadow-xl z-20 animate-in fade-in slide-in-from-top-1 duration-150">
+                                <button
+                                  onClick={() => deleteCategory(c.id)}
+                                  className="w-full text-left px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition"
+                                >
+                                  Delete Category
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-t border-border/40" />
+
+                    {/* Inline Task Add Field */}
+                    {isAdding && (
+                      <div className="relative mt-2 p-1">
+                        <label className="absolute -top-2 left-3 px-1 text-[9px] font-bold text-lavender bg-background z-10">
+                          New Task
+                        </label>
+                        <div className="flex items-center gap-2 border border-lavender/50 rounded-xl px-3 py-2 bg-input/10">
+                          <input
+                            autoFocus
+                            value={inlineAddTitle}
+                            onChange={(e) => setInlineAddTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleAddTaskInline(c.id, true);
+                              }
+                            }}
+                            placeholder="Type a task name and press Enter..."
+                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 text-foreground"
+                          />
+                          <button
+                            onClick={() => {
+                              setInlineAddTitle("");
+                              setInlineAddCatId(null);
+                            }}
+                            className="p-1 rounded hover:bg-card/40 text-muted-foreground hover:text-foreground transition"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tasks Checklist */}
+                    <div className="pl-1.5 space-y-1">
+                      {catTasks.map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex items-center gap-3 py-2 group hover:bg-card/20 px-2 rounded-xl transition"
+                        >
+                          <button
+                            onClick={() => toggleTaskCompleted(t)}
+                            className="text-muted-foreground hover:text-lavender transition shrink-0"
+                            aria-label="Toggle completed"
+                          >
+                            {t.completed ? (
+                              <CheckSquare className="w-4 h-4 text-lavender" />
+                            ) : (
+                              <Square className="w-4 h-4" />
+                            )}
+                          </button>
+                          <span
+                            className={`text-sm select-none break-all transition-all duration-300 ${
+                              t.completed
+                                ? "line-through text-muted-foreground"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {t.title}
+                          </span>
+                          
+                          <span className={`ml-auto text-[8px] uppercase tracking-wider border rounded-full px-1.5 py-0.2 shrink-0 ${priorityStyles[t.priority]}`}>
+                            {t.priority}
+                          </span>
+
+                          <button
+                            onClick={() => removeTask(t.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition shrink-0"
+                            title="Delete task"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {catTasks.length === 0 && !isAdding && (
+                        <div className="text-center py-4 text-xs text-muted-foreground/50 italic select-none">
+                          No tasks yet.. Tap to add some :)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* NEW DEADLINE CATEGORY CARD */}
+              <form onSubmit={handleAddDeadlineCategory} className="glass rounded-3xl p-6 max-w-sm space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  New Category
+                </h4>
+                <div className="space-y-1">
+                  <input
+                    required
+                    value={newDeadlineCat.name}
+                    onChange={(e) => setNewDeadlineCat((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="e.g. Studies, Work, Personal"
+                    className="w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-lavender/60 text-foreground"
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="date"
+                    required
+                    value={newDeadlineCat.deadline}
+                    onChange={(e) => setNewDeadlineCat((p) => ({ ...p, deadline: e.target.value }))}
+                    className="bg-input/40 border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-lavender/60 text-foreground flex-1"
+                  />
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl text-sm font-semibold text-[#1a1a1a] shadow-md transition hover:scale-105 active:scale-95 shrink-0"
+                    style={{ backgroundImage: "var(--gradient-accent)" }}
+                  >
+                    Create
+                  </button>
+                </div>
+              </form>
+            </div>
+
           </div>
 
-          {/* RIGHT COLUMN: Side Monthly Calendar & Category creator */}
+          {/* RIGHT COLUMN: Side Monthly Calendar & Daily Category creator */}
           <div className="space-y-6">
             <MonthlyCalendar selectedDate={selectedDate} onChange={setSelectedDate} tasks={tasks} />
             
-            {/* NEW CATEGORY CREATOR */}
-            <form onSubmit={handleAddCategory} className="glass rounded-2xl p-4 space-y-3">
+            {/* NEW DAILY CATEGORY CREATOR */}
+            <form onSubmit={handleAddDailyCategory} className="glass rounded-2xl p-4 space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                New Category
+                New Daily Category
               </h4>
               <input
                 required
-                value={newCat.name}
-                onChange={(e) => setNewCat((p) => ({ ...p, name: e.target.value }))}
+                value={newDailyCatName}
+                onChange={(e) => setNewDailyCatName(e.target.value)}
                 placeholder="e.g. Studies, Work, Personal"
-                className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-rose-gold/60 text-foreground"
+                className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-lavender/60 text-foreground"
               />
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={newCat.deadline}
-                  onChange={(e) => setNewCat((p) => ({ ...p, deadline: e.target.value }))}
-                  className="bg-input/40 border border-border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-rose-gold/60 text-foreground flex-1"
-                />
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1a1a1a]"
-                  style={{ backgroundImage: "var(--gradient-accent)" }}
-                >
-                  Create
-                </button>
-              </div>
+              <button
+                type="submit"
+                className="w-full py-1.5 rounded-lg text-xs font-semibold text-[#1a1a1a]"
+                style={{ backgroundImage: "var(--gradient-accent)" }}
+              >
+                Create Daily Category
+              </button>
             </form>
           </div>
 
@@ -605,7 +811,7 @@ export function TasksPanel() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-rose-gold" /> focus zone
+                    <Clock className="w-4 h-4 text-lavender" /> focus zone
                   </h3>
                   <button
                     onClick={() => {
@@ -633,10 +839,10 @@ export function TasksPanel() {
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => toggleTaskCompleted(t)}
-                          className="text-muted-foreground hover:text-rose-gold transition"
+                          className="text-muted-foreground hover:text-lavender transition"
                         >
                           {t.completed ? (
-                            <CheckSquare className="w-4 h-4 text-rose-gold" />
+                            <CheckSquare className="w-4 h-4 text-lavender" />
                           ) : (
                             <Square className="w-4 h-4" />
                           )}
@@ -668,7 +874,7 @@ export function TasksPanel() {
             <div className="w-full md:w-[360px] border-t md:border-t-0 md:border-l border-border/60 bg-card/10 backdrop-blur-lg p-8 flex flex-col items-center justify-center relative overflow-hidden">
               <div
                 className={`absolute w-60 h-60 rounded-full opacity-20 blur-3xl transition-all duration-1000 ${
-                  timerRunning ? "scale-125 bg-rose-gold" : "bg-purple-900"
+                  timerRunning ? "scale-125 bg-lavender" : "bg-purple-900"
                 }`}
               />
 
@@ -714,7 +920,7 @@ export function TasksPanel() {
                       }}
                       className={`px-2.5 py-1.5 rounded-lg border text-[9px] uppercase tracking-wider transition ${
                         timeLeft === preset.val
-                          ? "border-rose-gold text-rose-gold bg-rose-gold/10"
+                          ? "border-lavender text-lavender bg-lavender/10"
                           : "border-border text-muted-foreground hover:text-white"
                       }`}
                     >
@@ -764,7 +970,7 @@ function MonthlyCalendar({
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const firstDay = new Date(year, month, 1);
-  const startingDay = firstDay.getDay(); // 0 is Sunday, 1 is Monday...
+  const startingDay = firstDay.getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
   const daysArray = [];
@@ -810,7 +1016,7 @@ function MonthlyCalendar({
           const isToday = toDateStr(day) === toDateStr(new Date());
           const dateStr = toDateStr(day);
           
-          // Tasks count for day indicator
+          // Tasks count for day indicator (daily tasks only)
           const dayTasks = tasks.filter(t => t.due_date === dateStr);
           const hasTasks = dayTasks.length > 0;
           const completedAll = hasTasks && dayTasks.every(t => t.completed);
@@ -826,14 +1032,14 @@ function MonthlyCalendar({
                   isSelected
                     ? "bg-foreground text-background font-black scale-105"
                     : isToday
-                    ? "border border-rose-gold text-foreground"
-                    : "text-foreground group-hover:text-rose-gold"
+                    ? "border border-lavender text-foreground"
+                    : "text-foreground group-hover:text-lavender"
                 }`}
               >
                 {day.getDate()}
               </span>
               {hasTasks && (
-                <span className={`absolute bottom-0.5 w-1 h-1 rounded-full ${completedAll ? "bg-muted-foreground/45" : "bg-rose-gold"}`} />
+                <span className={`absolute bottom-0.5 w-1 h-1 rounded-full ${completedAll ? "bg-muted-foreground/45" : "bg-lavender"}`} />
               )}
             </button>
           );

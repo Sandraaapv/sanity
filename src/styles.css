@@ -141,8 +141,8 @@
   background: var(--card);
 }
 @utility gradient-border-glow {
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--rose-gold) 50%, transparent),
-              0 0 28px -6px color-mix(in oklab, var(--rose-gold) 45%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--lavender) 50%, transparent),
+              0 0 28px -6px color-mix(in oklab, var(--lavender) 45%, transparent);
 }
 
 @utility scrollbar-thin {

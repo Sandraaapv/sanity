@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckSquare, StickyNote, CalendarDays, Settings, Sparkles, LogOut } from "lucide-react";
-import { ThemeProvider } from "@/components/hub/theme";
+import { CheckSquare, StickyNote, CalendarDays, Settings, Sparkles, LogOut, Palette } from "lucide-react";
+import { ThemeProvider, useTheme } from "@/components/hub/theme";
 import { TasksPanel } from "@/components/hub/TasksPanel";
 import { NotesPanel } from "@/components/hub/NotesPanel";
 import { AgendaPanel } from "@/components/hub/AgendaPanel";
@@ -42,6 +42,11 @@ function Shell() {
   const [tab, setTab] = useState<TabId>("tasks");
   const navigate = useNavigate();
   const { user } = Route.useRouteContext();
+  const { theme, setTheme } = useTheme();
+
+  const cycleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
 
@@ -99,6 +104,13 @@ function Shell() {
                 day: "numeric",
               })}
             </span>
+            <button
+              onClick={cycleTheme}
+              className="p-1.5 rounded-lg border border-border bg-card/40 hover:bg-accent/40 text-foreground transition"
+              title="Toggle theme"
+            >
+              <Palette className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={signOut}
               className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition"
