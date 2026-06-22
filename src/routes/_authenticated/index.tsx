@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckSquare, StickyNote, CalendarDays, Settings, Sparkles, LogOut, Palette } from "lucide-react";
+import { CheckSquare, StickyNote, CalendarDays, Settings, Sparkles, LogOut, Palette, Timer } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/components/hub/theme";
 import { TasksPanel } from "@/components/hub/TasksPanel";
 import { NotesPanel } from "@/components/hub/NotesPanel";
 import { AgendaPanel } from "@/components/hub/AgendaPanel";
 import { ProfilePanel } from "@/components/hub/ProfilePanel";
 import { CommandBar } from "@/components/hub/CommandBar";
+import { StudyTimerPanel } from "@/components/hub/StudyTimerPanel";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/")({
 const tabs = [
   { id: "tasks", label: "Tasks", icon: CheckSquare },
   { id: "notes", label: "Notes", icon: StickyNote },
+  { id: "timer", label: "Study Timer", icon: Timer },
   { id: "agenda", label: "Agenda", icon: CalendarDays },
   { id: "profile", label: "Workspace", icon: Settings },
 ] as const;
@@ -156,6 +158,7 @@ function Shell() {
 
         {tab === "tasks" && <TasksPanel />}
         {tab === "notes" && <NotesPanel />}
+        {tab === "timer" && <StudyTimerPanel />}
         {tab === "agenda" && <AgendaPanel />}
         {tab === "profile" && <ProfilePanel />}
       </main>
@@ -167,6 +170,7 @@ function titleFor(t: TabId) {
   return {
     tasks: "Today's focus.",
     notes: "Captured thoughts.",
+    timer: "Deep focus.",
     agenda: "On the horizon.",
     profile: "Workspace settings.",
   }[t];
@@ -175,6 +179,7 @@ function subtitleFor(t: TabId) {
   return {
     tasks: "before you lose the rest of your sanity",
     notes: "Because you definitely won't remember this in five minutes",
+    timer: "Because looking at slides for five seconds doesn't count as studying",
     agenda: "Things you have to do eventually",
     profile: "Personalize identity, timezone, alerts, and visual mode.",
   }[t];

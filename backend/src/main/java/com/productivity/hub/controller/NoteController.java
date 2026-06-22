@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -97,6 +98,7 @@ public class NoteController {
         private String content;
         private String color;
         private boolean pinned;
+        private Instant createdAt;
 
         public NoteDto(Note note) {
             this.id = note.getId();
@@ -104,6 +106,7 @@ public class NoteController {
             this.content = note.getContent();
             this.color = note.getColor();
             this.pinned = note.isPinned();
+            this.createdAt = note.getCreatedAt();
         }
 
         public UUID getId() { return id; }
@@ -111,6 +114,7 @@ public class NoteController {
         public String getContent() { return content; }
         public String getColor() { return color; }
         public boolean isPinned() { return pinned; }
+        public Instant getCreatedAt() { return createdAt; }
     }
 
     public static class NoteRequest {

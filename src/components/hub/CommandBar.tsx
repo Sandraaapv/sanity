@@ -135,7 +135,7 @@ export function CommandBar() {
         await api.post("/notes", {
           title: "Quick Note",
           content: args,
-          color: "oklch(0.16 0.005 264)",
+          color: "#ffc97a",
           pinned: false
         });
       } else if (cmdItem.cmd === "/event ") {

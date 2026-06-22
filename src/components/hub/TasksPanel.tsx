@@ -102,6 +102,7 @@ export function TasksPanel() {
   // New category creation states
   const [newDailyCatName, setNewDailyCatName] = useState("");
   const [newDeadlineCat, setNewDeadlineCat] = useState({ name: "", deadline: "" });
+  const [showAddDeadlineForm, setShowAddDeadlineForm] = useState(false);
 
   // Popover options menus state
   const [activeMenuCatId, setActiveMenuCatId] = useState<string | null>(null);
@@ -205,6 +206,7 @@ export function TasksPanel() {
       });
       setCategories((p) => [...p, data as Category]);
       setNewDeadlineCat({ name: "", deadline: "" });
+      setShowAddDeadlineForm(false);
     } catch (err) {
       console.error(err);
     }
@@ -578,9 +580,86 @@ export function TasksPanel() {
 
             {/* DEADLINES SECTION (STATIC REGARDLESS OF CALENDAR SELECTION) */}
             <div className="space-y-6 pb-20">
-              <h3 className="text-lg font-black uppercase tracking-wider text-muted-foreground/80">
-                Deadlines
-              </h3>
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-black uppercase tracking-wider text-muted-foreground/80">
+                    Deadlines
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddDeadlineForm((prev) => !prev)}
+                    className="p-1 rounded-full hover:bg-card/60 text-muted-foreground hover:text-foreground transition-all duration-200"
+                    aria-label="Add deadline category"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Dropdown Box for creating new deadline category */}
+                {showAddDeadlineForm && (
+                  <>
+                    {/* Backdrop/Overlay click container to close when clicking outside */}
+                    <div 
+                      className="fixed inset-0 z-30" 
+                      onClick={() => setShowAddDeadlineForm(false)} 
+                    />
+                    
+                    <div className="absolute left-0 mt-2 z-40 w-72 glass rounded-3xl p-5 shadow-2xl border border-border/80 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <form onSubmit={handleAddDeadlineCategory} className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+                            New Category
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => setShowAddDeadlineForm(false)}
+                            className="p-1 rounded hover:bg-card/40 text-muted-foreground hover:text-foreground transition"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              Category Name
+                            </label>
+                            <input
+                              required
+                              autoFocus
+                              value={newDeadlineCat.name}
+                              onChange={(e) => setNewDeadlineCat((p) => ({ ...p, name: e.target.value }))}
+                              placeholder="e.g. Studies, Work, Personal"
+                              className="w-full bg-input/40 border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-lavender/60 text-foreground"
+                            />
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              Deadline Date
+                            </label>
+                            <input
+                              type="date"
+                              required
+                              value={newDeadlineCat.deadline}
+                              onChange={(e) => setNewDeadlineCat((p) => ({ ...p, deadline: e.target.value }))}
+                              className="w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-xs outline-none focus:border-lavender/60 text-foreground text-left"
+                            />
+                          </div>
+                          
+                          <button
+                            type="submit"
+                            className="w-full py-2 rounded-xl text-xs font-semibold text-[#1a1a1a] shadow-md transition hover:scale-[1.01] active:scale-95"
+                            style={{ backgroundImage: "var(--gradient-accent)" }}
+                          >
+                            Create Category
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </>
+                )}
+              </div>
 
               {deadlineCategories.map((c) => {
                 // Deadline categories show all tasks assigned to them (not date specific)
@@ -738,36 +817,6 @@ export function TasksPanel() {
                   </div>
                 );
               })}
-
-              {/* NEW DEADLINE CATEGORY CARD */}
-              <form onSubmit={handleAddDeadlineCategory} className="glass rounded-3xl p-6 max-w-sm space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
-                  New Category
-                </h4>
-                <div className="space-y-3">
-                  <input
-                    required
-                    value={newDeadlineCat.name}
-                    onChange={(e) => setNewDeadlineCat((p) => ({ ...p, name: e.target.value }))}
-                    placeholder="e.g. Studies, Work, Personal"
-                    className="w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-lavender/60 text-foreground"
-                  />
-                  <input
-                    type="date"
-                    required
-                    value={newDeadlineCat.deadline}
-                    onChange={(e) => setNewDeadlineCat((p) => ({ ...p, deadline: e.target.value }))}
-                    className="w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-lavender/60 text-foreground text-left"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-xl text-sm font-semibold text-[#1a1a1a] shadow-md transition hover:scale-[1.01] active:scale-95"
-                    style={{ backgroundImage: "var(--gradient-accent)" }}
-                  >
-                    Create Category
-                  </button>
-                </div>
-              </form>
             </div>
 
           </div>
