@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Theme = "light" | "dark" | "infra";
+export type Theme = "light" | "dark";
 
 type Ctx = { theme: Theme; setTheme: (t: Theme) => void };
 const ThemeCtx = createContext<Ctx>({ theme: "dark", setTheme: () => {} });
@@ -10,9 +10,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("dark", "infra");
+    root.classList.remove("dark");
     if (theme === "dark") root.classList.add("dark");
-    if (theme === "infra") root.classList.add("infra", "dark");
   }, [theme]);
 
   return <ThemeCtx.Provider value={{ theme, setTheme }}>{children}</ThemeCtx.Provider>;

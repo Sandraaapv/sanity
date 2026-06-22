@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Circle,
-  CheckCircle2,
   Trash2,
   Calendar,
-  Flag,
   Plus,
   Clock,
-  AlertTriangle,
-  Repeat,
+  ArrowLeftRight,
   MoreVertical,
   RotateCcw,
   Palette,
@@ -19,7 +15,7 @@ import {
   X,
   Play,
   Pause,
-  ArrowLeftRight
+  FolderOpen
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useTheme } from "./theme";
@@ -76,7 +72,7 @@ const toDateStr = (date: Date) => {
 
 const getWeekDays = (date: Date) => {
   const current = new Date(date);
-  const day = current.getDay(); // 0 is Sunday, 1 is Monday...
+  const day = current.getDay();
   const sunday = new Date(current);
   sunday.setDate(current.getDate() - day);
   
@@ -102,15 +98,11 @@ export function TasksPanel() {
   const selectedDateStr = useMemo(() => toDateStr(selectedDate), [selectedDate]);
   const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
 
-  // Modal & draft states for adding tasks / categories
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [modalTab, setModalTab] = useState<"task" | "category">("task");
-  const [taskDraft, setTaskDraft] = useState({
-    title: "",
-    categoryId: "",
-    priority: "medium" as Priority,
-    dueDate: toDateStr(new Date()),
-  });
+  // Inline task adding states
+  const [inlineAddCatId, setInlineAddCatId] = useState<string | null>(null);
+  const [inlineAddTitle, setInlineAddTitle] = useState("");
+
+  // New category creation states
   const [newCat, setNewCat] = useState({ name: "", deadline: "" });
 
   // Popover menus state
@@ -118,13 +110,8 @@ export function TasksPanel() {
 
   // Pomodoro Focus Mode states
   const [focusMode, setFocusMode] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(1500); // 25 minutes
+  const [timeLeft, setTimeLeft] = useState(1500);
   const [timerRunning, setTimerRunning] = useState(false);
-
-  // Sync taskDraft dueDate with selectedDate when selectedDate changes
-  useEffect(() => {
-    setTaskDraft((p) => ({ ...p, dueDate: selectedDateStr }));
-  }, [selectedDateStr]);
 
   // Pomodoro timer interval
   useEffect(() => {
@@ -164,9 +151,7 @@ export function TasksPanel() {
   };
 
   const cycleTheme = () => {
-    if (theme === "dark") setTheme("light");
-    else if (theme === "light") setTheme("infra");
-    else setTheme("dark");
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   const load = async () => {
@@ -209,7 +194,6 @@ export function TasksPanel() {
       });
       setCategories((p) => [...p, data as Category]);
       setNewCat({ name: "", deadline: "" });
-      setShowAddModal(false);
     } catch (err) {
       console.error(err);
     }
@@ -226,31 +210,49 @@ export function TasksPanel() {
     }
   };
 
-  // Task Actions
-  const handleAddTask = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!taskDraft.title.trim()) return;
-    
-    const catId = taskDraft.categoryId || (categories.length > 0 ? categories[0].id : null);
+  // Inline Task Adding Actions
+  const handleAddTaskInline = async (catId: string) => {
+    if (!inlineAddTitle.trim()) return;
     try {
       const { data } = await api.post("/tasks", {
         categoryId: catId,
-        title: taskDraft.title.trim(),
-        priority: taskDraft.priority,
-        dueDate: taskDraft.dueDate,
+        title: inlineAddTitle.trim(),
+        priority: "medium",
+        dueDate: selectedDateStr,
       });
       setTasks((p) => [...p, data as Task]);
-      setTaskDraft((p) => ({ ...p, title: "" }));
-      setShowAddModal(false);
+      setInlineAddTitle("");
+      setInlineAddCatId(null);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const openAddTaskForCategory = (catId: string) => {
-    setTaskDraft((p) => ({ ...p, categoryId: catId, title: "", dueDate: selectedDateStr }));
-    setModalTab("task");
-    setShowAddModal(true);
+  const handleMoveIncompleteTasksToNextDay = async (catId: string) => {
+    const incompleteTasks = tasks.filter(t => t.category_id === catId && t.due_date === selectedDateStr && !t.completed);
+    if (incompleteTasks.length === 0) return;
+    
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(selectedDate.getDate() + 1);
+    const nextDayStr = toDateStr(nextDay);
+    
+    // Update local state instantly for response responsiveness
+    setTasks(p => p.map(t => {
+      if (t.category_id === catId && t.due_date === selectedDateStr && !t.completed) {
+        return { ...t, due_date: nextDayStr };
+      }
+      return t;
+    }));
+    
+    // Update database
+    try {
+      await Promise.all(incompleteTasks.map(t => 
+        api.put(`/tasks/${t.id}`, { dueDate: nextDayStr })
+      ));
+    } catch (err) {
+      console.error(err);
+      load();
+    }
   };
 
   const toggleTaskCompleted = async (t: Task) => {
@@ -290,259 +292,308 @@ export function TasksPanel() {
     <div className="relative min-h-[500px]">
       {/* ---------------- NORMAL CALENDAR MODE ---------------- */}
       {!focusMode ? (
-        <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="max-w-5xl mx-auto grid gap-8 md:grid-cols-[1fr_300px] animate-in fade-in slide-in-from-bottom-4 duration-300">
           
-          {/* HEADER ROW */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-                  {selectedDate.toLocaleDateString([], { month: "long" })}
-                </h2>
-                <div className="flex items-center gap-1 ml-1 text-muted-foreground">
-                  <button
-                    onClick={() => {
-                      const prev = new Date(selectedDate);
-                      prev.setDate(selectedDate.getDate() - 7);
-                      setSelectedDate(prev);
-                    }}
-                    className="p-1 rounded-md hover:bg-card/60 transition"
-                    aria-label="Previous week"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      const next = new Date(selectedDate);
-                      next.setDate(selectedDate.getDate() + 7);
-                      setSelectedDate(next);
-                    }}
-                    className="p-1 rounded-md hover:bg-card/60 transition"
-                    aria-label="Next week"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5 lowercase">
-                {tasksCountText}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setSelectedDate(new Date())}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-xs font-semibold text-foreground transition"
-              >
-                <RotateCcw className="w-3 h-3" /> Today
-              </button>
-              <button
-                onClick={() => setFocusMode(true)}
-                className="p-2 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-foreground transition"
-                aria-label="Focus mode"
-                title="Focus Mode"
-              >
-                <Clock className="w-4 h-4" />
-              </button>
-              <button
-                onClick={cycleTheme}
-                className="p-2 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-foreground transition"
-                aria-label="Toggle theme"
-                title="Cycle Themes"
-              >
-                <Palette className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* WEEKLY DATE STRIP */}
-          <div className="glass rounded-2xl p-4">
-            <div className="grid grid-cols-7 text-center gap-1">
-              {weekDays.map((d, idx) => {
-                const dayName = d.toLocaleDateString([], { weekday: "short" });
-                const dateNum = d.getDate();
-                const isSelected = toDateStr(d) === selectedDateStr;
-                const isToday = toDateStr(d) === toDateStr(new Date());
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedDate(d)}
-                    className="flex flex-col items-center py-2 rounded-xl hover:bg-accent/20 transition relative group"
-                  >
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                      {dayName}
-                    </span>
-                    <span
-                      className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-full transition-all ${
-                        isSelected
-                          ? "bg-rose-gold text-background shadow-lg scale-105"
-                          : "text-foreground group-hover:text-rose-gold"
-                      }`}
+          {/* LEFT COLUMN: Daily planner categories and tasks */}
+          <div className="space-y-6">
+            
+            {/* HEADER ROW */}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
+                    {selectedDate.toLocaleDateString([], { month: "long" })}
+                  </h2>
+                  <div className="flex items-center gap-1 ml-1 text-muted-foreground">
+                    <button
+                      onClick={() => {
+                        const prev = new Date(selectedDate);
+                        prev.setDate(selectedDate.getDate() - 7);
+                        setSelectedDate(prev);
+                      }}
+                      className="p-1 rounded-md hover:bg-card/60 transition"
+                      aria-label="Previous week"
                     >
-                      {dateNum}
-                    </span>
-                    {isToday && (
-                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-destructive" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* CATEGORIES SECTIONS */}
-          <div className="space-y-6 pt-2 pb-16">
-            {categories.map((c) => {
-              const catTasks = selectedDateTasks.filter((t) => t.category_id === c.id);
-              return (
-                <div key={c.id} className="space-y-2">
-                  
-                  {/* Category Title & Actions Row */}
-                  <div className="flex items-center justify-between relative">
-                    <h4 className="text-sm font-bold lowercase tracking-wider flex items-center gap-2 text-foreground">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: c.color }}
-                      />
-                      {c.name}
-                    </h4>
-                    
-                    <div className="flex items-center gap-2">
-                      <button
-                        className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
-                        title="Recurring"
-                      >
-                        <ArrowLeftRight className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => openAddTaskForCategory(c.id)}
-                        className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
-                        title="Add task to this category"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                      
-                      {/* Three-dot dropdown trigger */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setActiveMenuCatId(activeMenuCatId === c.id ? null : c.id)}
-                          className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
-                          title="Category options"
-                        >
-                          <MoreVertical className="w-3.5 h-3.5" />
-                        </button>
-                        {activeMenuCatId === c.id && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={() => setActiveMenuCatId(null)} />
-                            <div className="absolute right-0 mt-1 w-32 glass rounded-lg py-1 shadow-xl z-20 animate-in fade-in slide-in-from-top-1 duration-150">
-                              <button
-                                onClick={() => deleteCategory(c.id)}
-                                className="w-full text-left px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition"
-                              >
-                                Delete Category
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <hr className="border-t border-border/40" />
-
-                  {/* Tasks Checklist */}
-                  <div className="pl-1.5 space-y-1">
-                    {catTasks.map((t) => (
-                      <div
-                        key={t.id}
-                        className="flex items-center gap-3 py-2 group hover:bg-card/20 px-2 rounded-xl transition"
-                      >
-                        <button
-                          onClick={() => toggleTaskCompleted(t)}
-                          className="text-muted-foreground hover:text-rose-gold transition shrink-0"
-                          aria-label="Toggle completed"
-                        >
-                          {t.completed ? (
-                            <CheckSquare className="w-4 h-4 text-rose-gold" />
-                          ) : (
-                            <Square className="w-4 h-4" />
-                          )}
-                        </button>
-                        <span
-                          className={`text-sm select-none break-all transition-all duration-300 ${
-                            t.completed
-                              ? "line-through text-muted-foreground"
-                              : "text-foreground"
-                          }`}
-                        >
-                          {t.title}
-                        </span>
-                        
-                        {/* Optional priority badge */}
-                        <span className={`ml-auto text-[8px] uppercase tracking-wider border rounded-full px-1.5 py-0.2 shrink-0 ${priorityStyles[t.priority]}`}>
-                          {t.priority}
-                        </span>
-
-                        <button
-                          onClick={() => removeTask(t.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition shrink-0"
-                          title="Delete task"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                    {catTasks.length === 0 && (
-                      <div className="text-center py-4 text-xs text-muted-foreground/50 italic select-none">
-                        No tasks yet.. Tap to add some :)
-                      </div>
-                    )}
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const next = new Date(selectedDate);
+                        next.setDate(selectedDate.getDate() + 7);
+                        setSelectedDate(next);
+                      }}
+                      className="p-1 rounded-md hover:bg-card/60 transition"
+                      aria-label="Next week"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              );
-            })}
+                <p className="text-xs text-muted-foreground mt-0.5 lowercase font-medium">
+                  {tasksCountText}
+                </p>
+              </div>
 
-            {!loading && categories.length === 0 && (
-              <div className="glass rounded-2xl p-8 text-center space-y-4">
-                <FolderOpen className="w-8 h-8 text-muted-foreground/60 mx-auto" />
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-sm">No categories yet</h4>
-                  <p className="text-xs text-muted-foreground">
-                    To start scheduling tasks, you must create a category context first.
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setModalTab("category");
-                    setShowAddModal(true);
-                  }}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-foreground text-background hover:bg-foreground/80 transition"
+                  onClick={() => setSelectedDate(new Date())}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-xs font-semibold text-foreground transition"
                 >
-                  Create category
+                  <RotateCcw className="w-3 h-3" /> Today
+                </button>
+                <button
+                  onClick={() => setFocusMode(true)}
+                  className="p-2 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-foreground transition"
+                  aria-label="Focus mode"
+                  title="Focus Mode"
+                >
+                  <Clock className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={cycleTheme}
+                  className="p-2 rounded-xl border border-border bg-card/40 hover:bg-accent/40 text-foreground transition"
+                  aria-label="Toggle theme"
+                  title="Cycle Theme"
+                >
+                  <Palette className="w-4 h-4" />
                 </button>
               </div>
-            )}
+            </div>
+
+            {/* WEEKLY DATE STRIP */}
+            <div className="glass rounded-2xl p-4">
+              <div className="grid grid-cols-7 text-center gap-1">
+                {weekDays.map((d, idx) => {
+                  const dayName = d.toLocaleDateString([], { weekday: "short" });
+                  const dateNum = d.getDate();
+                  const isSelected = toDateStr(d) === selectedDateStr;
+                  const isToday = toDateStr(d) === toDateStr(new Date());
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedDate(d)}
+                      className="flex flex-col items-center py-2 rounded-xl hover:bg-accent/20 transition relative group"
+                    >
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                        {dayName}
+                      </span>
+                      <span
+                        className={`w-9 h-9 flex items-center justify-center text-sm font-semibold rounded-full transition-all ${
+                          isSelected
+                            ? "bg-rose-gold text-background shadow-lg scale-105"
+                            : "text-foreground group-hover:text-rose-gold"
+                        }`}
+                      >
+                        {dateNum}
+                      </span>
+                      {isToday && (
+                        <span className="absolute bottom-1 w-1 h-1 rounded-full bg-destructive" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CATEGORIES SECTIONS */}
+            <div className="space-y-6 pt-2 pb-16">
+              {categories.map((c) => {
+                const catTasks = selectedDateTasks.filter((t) => t.category_id === c.id);
+                const isAdding = inlineAddCatId === c.id;
+
+                return (
+                  <div key={c.id} className="space-y-2">
+                    
+                    {/* Category Title & Actions Row */}
+                    <div className="flex items-center justify-between relative">
+                      <h4 className="text-sm font-bold lowercase tracking-wider flex items-center gap-2 text-foreground">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: c.color }}
+                        />
+                        {c.name}
+                      </h4>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleMoveIncompleteTasksToNextDay(c.id)}
+                          className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
+                          title="Defer incomplete tasks to tomorrow"
+                        >
+                          <ArrowLeftRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setInlineAddCatId(isAdding ? null : c.id);
+                            setInlineAddTitle("");
+                          }}
+                          className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
+                          title="Add task inline"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        
+                        {/* Three-dot dropdown trigger */}
+                        <div className="relative">
+                          <button
+                            onClick={() => setActiveMenuCatId(activeMenuCatId === c.id ? null : c.id)}
+                            className="p-1 rounded hover:bg-card/60 text-muted-foreground hover:text-foreground transition"
+                            title="Category options"
+                          >
+                            <MoreVertical className="w-3.5 h-3.5" />
+                          </button>
+                          {activeMenuCatId === c.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setActiveMenuCatId(null)} />
+                              <div className="absolute right-0 mt-1 w-32 glass rounded-lg py-1 shadow-xl z-20 animate-in fade-in slide-in-from-top-1 duration-150">
+                                <button
+                                  onClick={() => deleteCategory(c.id)}
+                                  className="w-full text-left px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10 transition"
+                                >
+                                  Delete Category
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-t border-border/40" />
+
+                    {/* Inline Task Add Field */}
+                    {isAdding && (
+                      <div className="relative mt-2 p-1">
+                        <label className="absolute -top-2 left-3 px-1 text-[9px] font-bold text-rose-gold bg-background z-10">
+                          New Task
+                        </label>
+                        <div className="flex items-center gap-2 border border-rose-gold/50 rounded-xl px-3 py-2 bg-input/10">
+                          <input
+                            autoFocus
+                            value={inlineAddTitle}
+                            onChange={(e) => setInlineAddTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleAddTaskInline(c.id);
+                              }
+                            }}
+                            placeholder="Type a task name and press Enter..."
+                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 text-foreground"
+                          />
+                          <button
+                            onClick={() => {
+                              setInlineAddTitle("");
+                              setInlineAddCatId(null);
+                            }}
+                            className="p-1 rounded hover:bg-card/40 text-muted-foreground hover:text-foreground transition"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tasks Checklist */}
+                    <div className="pl-1.5 space-y-1">
+                      {catTasks.map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex items-center gap-3 py-2 group hover:bg-card/20 px-2 rounded-xl transition"
+                        >
+                          <button
+                            onClick={() => toggleTaskCompleted(t)}
+                            className="text-muted-foreground hover:text-rose-gold transition shrink-0"
+                            aria-label="Toggle completed"
+                          >
+                            {t.completed ? (
+                              <CheckSquare className="w-4 h-4 text-rose-gold" />
+                            ) : (
+                              <Square className="w-4 h-4" />
+                            )}
+                          </button>
+                          <span
+                            className={`text-sm select-none break-all transition-all duration-300 ${
+                              t.completed
+                                ? "line-through text-muted-foreground"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {t.title}
+                          </span>
+                          
+                          <span className={`ml-auto text-[8px] uppercase tracking-wider border rounded-full px-1.5 py-0.2 shrink-0 ${priorityStyles[t.priority]}`}>
+                            {t.priority}
+                          </span>
+
+                          <button
+                            onClick={() => removeTask(t.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition shrink-0"
+                            title="Delete task"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {catTasks.length === 0 && !isAdding && (
+                        <div className="text-center py-4 text-xs text-muted-foreground/50 italic select-none">
+                          No tasks yet.. Tap to add some :)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {!loading && categories.length === 0 && (
+                <div className="glass rounded-2xl p-8 text-center space-y-4">
+                  <FolderOpen className="w-8 h-8 text-muted-foreground/60 mx-auto" />
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-sm">No categories yet</h4>
+                    <p className="text-xs text-muted-foreground">
+                      To start scheduling tasks, you must create a category context first.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
 
-          {/* FLOATING ACTION PLUS BUTTON */}
-          <button
-            onClick={() => {
-              setTaskDraft((p) => ({
-                ...p,
-                categoryId: categories[0]?.id || "",
-                title: "",
-                dueDate: selectedDateStr
-              }));
-              setModalTab("task");
-              setShowAddModal(true);
-            }}
-            className="fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-[#1a1a1a] transition-transform hover:scale-105 active:scale-95 z-40"
-            style={{ backgroundImage: "var(--gradient-accent)" }}
-            aria-label="Add task or category"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+          {/* RIGHT COLUMN: Side Monthly Calendar & Category creator */}
+          <div className="space-y-6">
+            <MonthlyCalendar selectedDate={selectedDate} onChange={setSelectedDate} tasks={tasks} />
+            
+            {/* NEW CATEGORY CREATOR */}
+            <form onSubmit={handleAddCategory} className="glass rounded-2xl p-4 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                New Category
+              </h4>
+              <input
+                required
+                value={newCat.name}
+                onChange={(e) => setNewCat((p) => ({ ...p, name: e.target.value }))}
+                placeholder="e.g. Studies, Work, Personal"
+                className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-rose-gold/60 text-foreground"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={newCat.deadline}
+                  onChange={(e) => setNewCat((p) => ({ ...p, deadline: e.target.value }))}
+                  className="bg-input/40 border border-border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-rose-gold/60 text-foreground flex-1"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1a1a1a]"
+                  style={{ backgroundImage: "var(--gradient-accent)" }}
+                >
+                  Create
+                </button>
+              </div>
+            </form>
+          </div>
+
         </div>
       ) : (
         /* ---------------- FOCUS TIMER MODE ---------------- */
@@ -633,7 +684,7 @@ export function TasksPanel() {
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={() => setTimerRunning(!timerRunning)}
-                    className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-xs text-[#1a1a1a] transition-all hover:scale-105 active:scale-95"
+                    className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-xs text-[#1a1a1a] transition-all hover:scale-105 active:scale-95 animate-pulse"
                     style={{ backgroundImage: "var(--gradient-accent)" }}
                   >
                     {timerRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
@@ -677,178 +728,117 @@ export function TasksPanel() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* ---------------- ADD TASK / CATEGORY MODAL ---------------- */}
-      {showAddModal && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm px-4"
-          onClick={() => setShowAddModal(false)}
-        >
-          <div
-            className="glass rounded-2xl w-full max-w-md p-6 space-y-4 animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header Tab Selection */}
-            <div className="flex border-b border-border/40 pb-2">
-              <button
-                onClick={() => setModalTab("task")}
-                className={`flex-1 text-center py-1 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all ${
-                  modalTab === "task"
-                    ? "border-rose-gold text-rose-gold"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                New Task
-              </button>
-              <button
-                onClick={() => setModalTab("category")}
-                className={`flex-1 text-center py-1 text-sm font-semibold tracking-wider uppercase border-b-2 transition-all ${
-                  modalTab === "category"
-                    ? "border-rose-gold text-rose-gold"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                New Category
-              </button>
-            </div>
+// ---------------- MINI MONTHLY CALENDAR COMPONENT ----------------
+function MonthlyCalendar({
+  selectedDate,
+  onChange,
+  tasks
+}: {
+  selectedDate: Date;
+  onChange: (d: Date) => void;
+  tasks: Task[];
+}) {
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(selectedDate));
+  
+  // Update view month when selected date changes from outside
+  useEffect(() => {
+    setCurrentMonth(new Date(selectedDate));
+  }, [selectedDate]);
 
-            {/* TAB CONTENT: TASK CREATE */}
-            {modalTab === "task" ? (
-              <form onSubmit={handleAddTask} className="space-y-4">
-                {categories.length === 0 ? (
-                  <div className="text-center py-4 text-xs text-muted-foreground">
-                    Please create a category first to create tasks.
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Task title
-                      </label>
-                      <input
-                        required
-                        value={taskDraft.title}
-                        onChange={(e) => setTaskDraft((p) => ({ ...p, title: e.target.value }))}
-                        placeholder="e.g. Start DSA, Clean desk"
-                        className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60"
-                      />
-                    </div>
+  const prevMonth = () => {
+    const d = new Date(currentMonth);
+    d.setMonth(d.getMonth() - 1);
+    setCurrentMonth(d);
+  };
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          Category
-                        </label>
-                        <select
-                          value={taskDraft.categoryId}
-                          onChange={(e) => setTaskDraft((p) => ({ ...p, categoryId: e.target.value }))}
-                          className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60"
-                        >
-                          {categories.map((c) => (
-                            <option key={c.id} value={c.id} className="bg-card text-foreground">
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+  const nextMonth = () => {
+    const d = new Date(currentMonth);
+    d.setMonth(d.getMonth() + 1);
+    setCurrentMonth(d);
+  };
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          Priority
-                        </label>
-                        <select
-                          value={taskDraft.priority}
-                          onChange={(e) => setTaskDraft((p) => ({ ...p, priority: e.target.value as Priority }))}
-                          className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60"
-                        >
-                          <option value="low" className="bg-card text-foreground">Low</option>
-                          <option value="medium" className="bg-card text-foreground">Medium</option>
-                          <option value="high" className="bg-card text-foreground">High</option>
-                        </select>
-                      </div>
-                    </div>
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startingDay = firstDay.getDay(); // 0 is Sunday, 1 is Monday...
+  const totalDays = new Date(year, month + 1, 0).getDate();
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Due Date
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={taskDraft.dueDate}
-                        onChange={(e) => setTaskDraft((p) => ({ ...p, dueDate: e.target.value }))}
-                        className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60 text-foreground"
-                      />
-                    </div>
+  const daysArray = [];
+  // Empty cell placeholders for alignments
+  for (let i = 0; i < startingDay; i++) {
+    daysArray.push(null);
+  }
+  // Populate the days of month
+  for (let i = 1; i <= totalDays; i++) {
+    daysArray.push(new Date(year, month, i));
+  }
 
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddModal(false)}
-                        className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:text-foreground transition"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="flex-1 rounded-lg py-2 text-xs font-semibold text-[#1a1a1a] transition-all"
-                        style={{ backgroundImage: "var(--gradient-accent)" }}
-                      >
-                        Create Task
-                      </button>
-                    </div>
-                  </>
-                )}
-              </form>
-            ) : (
-              /* TAB CONTENT: CATEGORY CREATE */
-              <form onSubmit={handleAddCategory} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Category Name
-                  </label>
-                  <input
-                    required
-                    value={newCat.name}
-                    onChange={(e) => setNewCat((p) => ({ ...p, name: e.target.value }))}
-                    placeholder="e.g. Studies, Work, Personal"
-                    className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60"
-                  />
-                </div>
+  const weekHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Deadline (Optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={newCat.deadline}
-                    onChange={(e) => setNewCat((p) => ({ ...p, deadline: e.target.value }))}
-                    className="w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60 text-foreground"
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 rounded-lg py-2 text-xs font-semibold border border-border text-muted-foreground hover:text-foreground transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 rounded-lg py-2 text-xs font-semibold text-[#1a1a1a] transition-all"
-                    style={{ backgroundImage: "var(--gradient-accent)" }}
-                  >
-                    Create Category
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+  return (
+    <div className="glass rounded-2xl p-4 space-y-4">
+      {/* Month Year navigation */}
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-foreground">
+          {currentMonth.toLocaleDateString([], { month: "short", year: "numeric" })}
+        </h4>
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <button onClick={prevMonth} className="p-1 rounded-md hover:bg-card/60 transition" aria-label="Previous Month">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button onClick={nextMonth} className="p-1 rounded-md hover:bg-card/60 transition" aria-label="Next Month">
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
-      )}
+      </div>
+
+      {/* Week headings grid */}
+      <div className="grid grid-cols-7 text-center gap-1 text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+        {weekHeaders.map(h => <span key={h}>{h.slice(0, 1)}</span>)}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 text-center gap-1">
+        {daysArray.map((day, idx) => {
+          if (!day) return <span key={`empty-${idx}`} />;
+          
+          const isSelected = toDateStr(day) === toDateStr(selectedDate);
+          const isToday = toDateStr(day) === toDateStr(new Date());
+          const dateStr = toDateStr(day);
+          
+          // Tasks count for day indicator
+          const dayTasks = tasks.filter(t => t.due_date === dateStr);
+          const hasTasks = dayTasks.length > 0;
+          const completedAll = hasTasks && dayTasks.every(t => t.completed);
+
+          return (
+            <button
+              key={idx}
+              onClick={() => onChange(day)}
+              className="flex flex-col items-center justify-center py-1.5 rounded-lg hover:bg-accent/20 transition relative group"
+            >
+              <span
+                className={`w-7 h-7 flex items-center justify-center text-xs font-semibold rounded-full transition-all ${
+                  isSelected
+                    ? "bg-foreground text-background font-black scale-105"
+                    : isToday
+                    ? "border border-rose-gold text-foreground"
+                    : "text-foreground group-hover:text-rose-gold"
+                }`}
+              >
+                {day.getDate()}
+              </span>
+              {hasTasks && (
+                <span className={`absolute bottom-0.5 w-1 h-1 rounded-full ${completedAll ? "bg-muted-foreground/45" : "bg-rose-gold"}`} />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

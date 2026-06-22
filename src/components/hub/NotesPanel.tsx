@@ -100,15 +100,6 @@ export function NotesPanel() {
           />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {palette.map((c) => (
-                <button
-                  key={c.name}
-                  onClick={() => setDraft((p) => ({ ...p, color: c.value }))}
-                  className={`w-5 h-5 rounded-full border transition ${draft.color === c.value ? "ring-2 ring-rose-gold ring-offset-2 ring-offset-background" : "border-border"}`}
-                  style={{ background: c.value }}
-                  aria-label={c.name}
-                />
-              ))}
             </div>
             <button onClick={add} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border hover:border-rose-gold/60">
               <Plus className="w-3.5 h-3.5" /> Add note
@@ -142,19 +133,18 @@ function Section({ label, notes, onPin, onRemove }: { label: string; notes: Note
         {notes.map((n) => (
           <div
             key={n.id}
-            className="group relative rounded-2xl p-4 border border-border text-sm transition hover:-translate-y-0.5 hover:border-foreground/20"
-            style={{ background: n.color, color: "oklch(0.95 0 0)" }}
+            className="group relative rounded-2xl p-4 border border-border bg-card/60 text-sm transition hover:-translate-y-0.5 hover:border-foreground/20 text-foreground"
           >
             <div className="flex items-start justify-between gap-2">
               <p className="font-medium">{n.title}</p>
-              <button onClick={() => onPin(n.id)} className="text-white/60 hover:text-white" aria-label="pin">
+              <button onClick={() => onPin(n.id)} className="text-muted-foreground hover:text-foreground" aria-label="pin">
                 {n.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
               </button>
             </div>
-            <p className="mt-2 whitespace-pre-wrap text-xs/relaxed text-white/75">{n.content}</p>
+            <p className="mt-2 whitespace-pre-wrap text-xs/relaxed text-muted-foreground">{n.content}</p>
             <button
               onClick={() => onRemove(n.id)}
-              className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition text-white/60 hover:text-white"
+              className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition text-muted-foreground hover:text-foreground"
               aria-label="delete"
             >
               <Trash2 className="w-4 h-4" />
