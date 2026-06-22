@@ -68,7 +68,7 @@ function Shell() {
       <header className="sticky top-0 z-50 glass">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center">
-            <span className="text-xl font-black tracking-widest uppercase">SANITY</span>
+            <span className="text-3xl font-black tracking-widest uppercase">SANITY</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1 rounded-2xl border border-border bg-card/40 p-1">
@@ -147,13 +147,6 @@ function Shell() {
         {tab === "agenda" && <AgendaPanel />}
         {tab === "profile" && <ProfilePanel />}
       </main>
-
-      <footer className="border-t border-border mt-16">
-        <div className="max-w-7xl mx-auto px-6 py-6 text-[11px] uppercase tracking-[0.2em] text-muted-foreground flex justify-between">
-          <span>SANITY</span>
-          <span>Crafted with intent</span>
-        </div>
-      </footer>
     </div>
   );
 }
