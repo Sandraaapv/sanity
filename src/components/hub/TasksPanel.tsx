@@ -37,6 +37,22 @@ const priorityStyles: Record<Priority, string> = {
 
 const categoryPalette = ["#e8b4b8", "#c4b5fd", "#a7f3d0", "#fcd34d", "#93c5fd", "#fda4af"];
 
+const toLocalMidnightISO = (dateStr: string) => {
+  if (!dateStr) return null;
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day, 23, 59, 59, 999);
+  return date.toISOString();
+};
+
+const toLocalDateInputString = (isoString: string | null) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export function TasksPanel() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -124,7 +140,7 @@ export function TasksPanel() {
       const { data } = await api.post("/task-categories", {
         name: newCat.name.trim(),
         color,
-        deadline: newCat.deadline ? new Date(newCat.deadline).toISOString() : null,
+        deadline: toLocalMidnightISO(newCat.deadline),
       });
       setCategories((p) => [...p, data as Category]);
       setActiveCat((data as Category).id);
@@ -146,7 +162,7 @@ export function TasksPanel() {
   };
 
   const updateDeadline = async (id: string, value: string) => {
-    const iso = value ? new Date(value).toISOString() : null;
+    const iso = toLocalMidnightISO(value);
     setCategories((p) => p.map((c) => (c.id === id ? { ...c, deadline: iso } : c)));
     try {
       await api.put(`/task-categories/${id}`, { deadline: iso });
@@ -229,7 +245,7 @@ export function TasksPanel() {
               Shared deadline (applies to all tasks inside)
             </label>
             <input
-              type="datetime-local"
+              type="date"
               value={newCat.deadline}
               onChange={(e) => setNewCat((p) => ({ ...p, deadline: e.target.value }))}
               className="mt-1 w-full bg-input/40 border border-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-rose-gold/60"
@@ -319,12 +335,8 @@ export function TasksPanel() {
                     Deadline
                   </label>
                   <input
-                    type="datetime-local"
-                    value={
-                      current.deadline
-                        ? new Date(current.deadline).toISOString().slice(0, 16)
-                        : ""
-                    }
+                    type="date"
+                    value={toLocalDateInputString(current.deadline)}
                     onChange={(e) => updateDeadline(current.id, e.target.value)}
                     className="bg-input/40 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-rose-gold/60"
                   />
@@ -436,11 +448,9 @@ export function TasksPanel() {
                         <div className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
                           <Calendar className="w-3 h-3" />
                           Inherits deadline ·{" "}
-                          {new Date(current.deadline).toLocaleString([], {
+                          {new Date(current.deadline).toLocaleDateString([], {
                             month: "short",
                             day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
                           })}
                         </div>
                       )}
