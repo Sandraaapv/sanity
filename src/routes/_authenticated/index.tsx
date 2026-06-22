@@ -135,7 +135,7 @@ function Shell() {
       <main className="relative max-w-7xl mx-auto px-6 py-10">
         <div className="mb-8 flex items-end justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
               <span className="gradient-text">{titleFor(tab)}</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">{subtitleFor(tab)}</p>
@@ -169,8 +169,8 @@ function titleFor(t: TabId) {
 function subtitleFor(t: TabId) {
   return {
     tasks: "before you lose the rest of your sanity",
-    notes: "Pin what matters. Color-code by context. Search instantly.",
-    agenda: "Browse the month, plan ahead, and capture every event.",
+    notes: "Because you definitely won't remember this in five minutes",
+    agenda: "Things you have to do eventually",
     profile: "Personalize identity, timezone, alerts, and visual mode.",
   }[t];
 }
