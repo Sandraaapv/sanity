@@ -28,6 +28,13 @@ export function NotesPanel() {
 
   useEffect(() => {
     load();
+    const handleRefresh = () => {
+      load();
+    };
+    window.addEventListener("workspace-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("workspace-refresh", handleRefresh);
+    };
   }, []);
 
   const filtered = useMemo(() => {

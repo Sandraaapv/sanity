@@ -47,6 +47,45 @@ export function TasksPanel() {
     title: "",
     priority: "medium",
   });
+  const [focusMode, setFocusMode] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(1500); // 25 minutes
+  const [timerRunning, setTimerRunning] = useState(false);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (timerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && timerRunning) {
+      setTimerRunning(false);
+      if (typeof window !== "undefined") {
+        try {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.5);
+        } catch (e) {
+          console.warn("Could not play beep", e);
+        }
+      }
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning, timeLeft]);
+
+  const formatTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainingSecs = secs % 60;
+    return `${String(mins).padStart(2, "0")}:${String(remainingSecs).padStart(2, "0")}`;
+  };
 
   const load = async () => {
     setLoading(true);
@@ -67,6 +106,13 @@ export function TasksPanel() {
 
   useEffect(() => {
     load();
+    const handleRefresh = () => {
+      load();
+    };
+    window.addEventListener("workspace-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("workspace-refresh", handleRefresh);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -152,6 +198,9 @@ export function TasksPanel() {
     () => tasks.filter((t) => t.category_id === activeCat),
     [tasks, activeCat],
   );
+  const totalTasks = currentTasks.length;
+  const completedTasks = currentTasks.filter((t) => t.completed).length;
+  const percent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   const deadlineMeta = (iso: string | null) => {
     if (!iso) return null;
@@ -257,35 +306,65 @@ export function TasksPanel() {
       <div className="space-y-4">
         {current ? (
           <>
-            <div className="glass rounded-2xl p-5 flex flex-wrap items-end gap-4 justify-between">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  <FolderOpen className="w-3 h-3" /> Category
+            <div className="glass rounded-2xl p-5 space-y-4">
+              <div className="flex flex-wrap items-end gap-4 justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    <FolderOpen className="w-3 h-3" /> Category
+                  </div>
+                  <h3 className="text-xl font-semibold mt-1 truncate">{current.name}</h3>
                 </div>
-                <h3 className="text-xl font-semibold mt-1 truncate">{current.name}</h3>
+                <div className="flex items-center gap-3">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Deadline
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={
+                      current.deadline
+                        ? new Date(current.deadline).toISOString().slice(0, 16)
+                        : ""
+                    }
+                    onChange={(e) => updateDeadline(current.id, e.target.value)}
+                    className="bg-input/40 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-rose-gold/60"
+                  />
+                  <button
+                    onClick={() => setFocusMode(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-rose-gold border border-border bg-card/60 hover:bg-accent/40 transition"
+                    aria-label="Focus mode"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Focus Mode</span>
+                  </button>
+                  <button
+                    onClick={() => deleteCategory(current.id)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive border border-border"
+                    aria-label="Delete category"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Deadline
-                </label>
-                <input
-                  type="datetime-local"
-                  value={
-                    current.deadline
-                      ? new Date(current.deadline).toISOString().slice(0, 16)
-                      : ""
-                  }
-                  onChange={(e) => updateDeadline(current.id, e.target.value)}
-                  className="bg-input/40 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-rose-gold/60"
-                />
-                <button
-                  onClick={() => deleteCategory(current.id)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive border border-border"
-                  aria-label="Delete category"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+
+              {totalTasks > 0 && (
+                <div className="pt-2 border-t border-border/40">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Progress</span>
+                    <span className="font-semibold text-rose-gold tabular-nums">
+                      {completedTasks}/{totalTasks} tasks ({percent}%)
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-input/40 rounded-full overflow-hidden border border-border">
+                    <div
+                      className="h-full rounded-full transition-all duration-500 ease-out"
+                      style={{
+                        width: `${percent}%`,
+                        backgroundImage: "var(--gradient-accent)",
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <form
@@ -388,6 +467,159 @@ export function TasksPanel() {
           </div>
         )}
       </div>
+      {focusMode && current && (
+        <div className="fixed inset-0 z-[100] bg-[#0c0a12]/98 backdrop-blur-md flex flex-col md:grid md:grid-cols-[1fr_420px] overflow-hidden animate-in fade-in duration-300">
+          <div className="flex-1 p-6 md:p-12 overflow-y-auto flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-rose-gold font-bold">
+                    Focus Mode · {current.name}
+                  </p>
+                  <h2 className="text-3xl font-bold mt-1 text-white tracking-tight">Active Focus List</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setFocusMode(false);
+                    setTimerRunning(false);
+                  }}
+                  className="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground hover:text-white border border-border rounded-xl bg-card/40 transition"
+                >
+                  Exit Focus
+                </button>
+              </div>
+
+              {totalTasks > 0 && (
+                <div className="mb-8 bg-card/30 border border-border/40 p-4 rounded-2xl">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Session Progress</span>
+                    <span className="font-semibold text-rose-gold tabular-nums">
+                      {completedTasks}/{totalTasks} tasks ({percent}%)
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-input/40 rounded-full overflow-hidden border border-border">
+                    <div
+                      className="h-full rounded-full transition-all duration-500 ease-out"
+                      style={{
+                        width: `${percent}%`,
+                        backgroundImage: "var(--gradient-accent)",
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <ul className="space-y-3">
+                {currentTasks.map((t) => (
+                  <li
+                    key={t.id}
+                    className={`rounded-2xl border border-border/60 bg-card/40 p-4 transition ${
+                      t.completed ? "opacity-50" : "gradient-border-glow bg-card/60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => toggle(t)}
+                        className="text-muted-foreground hover:text-white transition"
+                        aria-label="toggle"
+                      >
+                        {t.completed ? (
+                          <CheckCircle2 className="w-5 h-5 text-rose-gold" />
+                        ) : (
+                          <Circle className="w-5 h-5" />
+                        )}
+                      </button>
+                      <p
+                        className={`font-semibold text-sm text-white ${
+                          t.completed ? "line-through text-muted-foreground" : ""
+                        }`}
+                      >
+                        {t.title}
+                      </p>
+                      <span
+                        className={`ml-auto text-[9px] uppercase tracking-wider border rounded-full px-2 py-0.5 inline-flex items-center gap-1 ${
+                          priorityStyles[t.priority]
+                        }`}
+                      >
+                        {t.priority}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+                {currentTasks.length === 0 && (
+                  <div className="text-center py-12 text-sm text-muted-foreground">
+                    All focus tasks completed! Great work.
+                  </div>
+                )}
+              </ul>
+            </div>
+            
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 text-center pt-8">
+              Sanity Focus Zone · Keep breathing, keep moving
+            </div>
+          </div>
+
+          <div className="w-full md:w-[420px] border-t md:border-t-0 md:border-l border-border/60 bg-card/10 backdrop-blur-lg p-6 md:p-12 flex flex-col items-center justify-center relative overflow-hidden">
+            <div
+              className={`absolute w-72 h-72 rounded-full opacity-20 blur-3xl transition-all duration-1000 ${
+                timerRunning ? "scale-125 bg-rose-gold" : "bg-purple-900"
+              }`}
+            />
+            
+            <div className="relative z-10 text-center space-y-8 w-full max-w-xs">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                {timerRunning ? "Focus Session Active" : "Session Paused"}
+              </p>
+              
+              <div className="text-7xl md:text-8xl font-black text-white tracking-widest font-mono">
+                {formatTime(timeLeft)}
+              </div>
+
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setTimerRunning(!timerRunning)}
+                  className="w-16 h-16 rounded-full grid place-items-center font-bold text-sm text-[#1a1a1a] transition-all hover:scale-105"
+                  style={{ backgroundImage: "var(--gradient-accent)" }}
+                >
+                  {timerRunning ? "PAUSE" : "START"}
+                </button>
+                <button
+                  onClick={() => {
+                    setTimerRunning(false);
+                    setTimeLeft(1500);
+                  }}
+                  className="px-5 py-2.5 rounded-full border border-border text-xs uppercase tracking-wider text-muted-foreground hover:text-white bg-card/40 transition"
+                >
+                  RESET
+                </button>
+              </div>
+
+              <div className="flex justify-center gap-2 pt-4">
+                {[
+                  { label: "15m", val: 900 },
+                  { label: "25m", val: 1500 },
+                  { label: "45m", val: 2700 },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => {
+                      setTimerRunning(false);
+                      setTimeLeft(preset.val);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg border text-[10px] uppercase tracking-wider transition ${
+                      timeLeft === preset.val
+                        ? "border-rose-gold text-rose-gold bg-rose-gold/10"
+                        : "border-border text-muted-foreground hover:text-white"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

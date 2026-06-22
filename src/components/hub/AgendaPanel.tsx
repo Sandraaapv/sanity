@@ -60,6 +60,17 @@ export function AgendaPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor]);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      load();
+    };
+    window.addEventListener("workspace-refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("workspace-refresh", handleRefresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const days = useMemo(() => {
     const first = startOfMonth(cursor);
     const startWeekday = first.getDay();

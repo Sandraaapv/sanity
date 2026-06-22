@@ -6,6 +6,7 @@ import { TasksPanel } from "@/components/hub/TasksPanel";
 import { NotesPanel } from "@/components/hub/NotesPanel";
 import { AgendaPanel } from "@/components/hub/AgendaPanel";
 import { ProfilePanel } from "@/components/hub/ProfilePanel";
+import { CommandBar } from "@/components/hub/CommandBar";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -51,6 +52,7 @@ function Shell() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-foreground">
+      <CommandBar />
       <div
         className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-40 blur-3xl"
         style={{ background: "var(--gradient-glow)" }}
