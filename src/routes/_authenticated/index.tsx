@@ -168,7 +168,7 @@ function titleFor(t: TabId) {
 }
 function subtitleFor(t: TabId) {
   return {
-    tasks: "Group your work by context. Each category gets its own deadline.",
+    tasks: "before you lose the rest of your sanity",
     notes: "Pin what matters. Color-code by context. Search instantly.",
     agenda: "Browse the month, plan ahead, and capture every event.",
     profile: "Personalize identity, timezone, alerts, and visual mode.",
