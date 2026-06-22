@@ -138,6 +138,7 @@ public class TaskController {
         task.setTitle(request.getTitle().trim());
         task.setPriority(request.getPriority() != null ? request.getPriority() : "medium");
         task.setCompleted(request.getCompleted() != null && request.getCompleted());
+        task.setDueDate(request.getDueDate());
 
         Task saved = taskRepository.save(task);
         return ResponseEntity.status(HttpStatus.CREATED).body(new TaskDto(saved));
@@ -166,6 +167,9 @@ public class TaskController {
             if (category != null) {
                 task.setCategory(category);
             }
+        }
+        if (request.getDueDate() != null) {
+            task.setDueDate(request.getDueDate().isEmpty() ? null : request.getDueDate());
         }
 
         Task updated = taskRepository.save(task);
@@ -223,6 +227,7 @@ public class TaskController {
         private String title;
         private String priority;
         private boolean completed;
+        private String due_date;
 
         public TaskDto(Task task) {
             this.id = task.getId();
@@ -230,6 +235,7 @@ public class TaskController {
             this.title = task.getTitle();
             this.priority = task.getPriority();
             this.completed = task.isCompleted();
+            this.due_date = task.getDueDate();
         }
 
         public UUID getId() { return id; }
@@ -237,6 +243,7 @@ public class TaskController {
         public String getTitle() { return title; }
         public String getPriority() { return priority; }
         public boolean isCompleted() { return completed; }
+        public String getDue_date() { return due_date; }
     }
 
     public static class TaskRequest {
@@ -244,6 +251,7 @@ public class TaskController {
         private String priority;
         private Boolean completed;
         private UUID categoryId;
+        private String dueDate;
 
         public String getTitle() { return title; }
         public void setTitle(String title) { this.title = title; }
@@ -253,5 +261,7 @@ public class TaskController {
         public void setCompleted(Boolean completed) { this.completed = completed; }
         public UUID getCategoryId() { return categoryId; }
         public void setCategoryId(UUID categoryId) { this.categoryId = categoryId; }
+        public String getDueDate() { return dueDate; }
+        public void setDueDate(String dueDate) { this.dueDate = dueDate; }
     }
 }

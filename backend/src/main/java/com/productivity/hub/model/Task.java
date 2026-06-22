@@ -35,6 +35,9 @@ public class Task {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @Column(name = "due_date")
+    private String dueDate;
+
     public Task() {}
 
     @PreUpdate
@@ -104,5 +107,13 @@ public class Task {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(String dueDate) {
+        this.dueDate = dueDate;
     }
 }
