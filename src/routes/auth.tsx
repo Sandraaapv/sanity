@@ -4,6 +4,7 @@ import { Sparkles, Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/hub/theme";
 import { Auth3DScene } from "@/components/auth/Auth3DScene";
 import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
 
 export const Route = createFileRoute("/auth")({
@@ -39,6 +40,33 @@ function AuthPage() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.access_token) {
+        try {
+          setLoading(true);
+          setError(null);
+          const { data } = await api.post("/auth/google", {
+            token: session.access_token,
+          });
+          localStorage.setItem("token", data.token);
+          // Sign out of Supabase locally since we've established our own session
+          await supabase.auth.signOut();
+          navigate({ to: "/" });
+        } catch (err) {
+          setError("Failed to verify Google account on backend.");
+          await supabase.auth.signOut();
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -69,25 +97,17 @@ function AuthPage() {
 
   const google = async () => {
     setError(null);
-    const mockEmail = "google.user@example.com";
-    const mockDisplayName = "Google User";
     try {
       setLoading(true);
-      const { data } = await api.post("/auth/signup", {
-        email: mockEmail,
-        password: "google-oauth-mock-password",
-        displayName: mockDisplayName,
-      }).catch(async () => {
-        return api.post("/auth/login", {
-          email: mockEmail,
-          password: "google-oauth-mock-password",
-        });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+        },
       });
-      localStorage.setItem("token", data.token);
-      navigate({ to: "/" });
+      if (error) throw error;
     } catch (err) {
-      setError("Google integration failed.");
-    } finally {
+      setError(err instanceof Error ? err.message : "Google integration failed.");
       setLoading(false);
     }
   };

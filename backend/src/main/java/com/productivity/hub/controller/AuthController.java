@@ -14,6 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.UUID;
 
@@ -78,6 +84,79 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(jwt, user.getId(), user.getEmail(), displayName));
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<?> authenticateGoogleUser(@Valid @RequestBody GoogleLoginRequest request) {
+        SupabaseUser supabaseUser = verifySupabaseToken(request.getToken());
+        if (supabaseUser == null || supabaseUser.getEmail() == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Invalid Google token or account."));
+        }
+
+        String email = supabaseUser.getEmail();
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            // Register a new user
+            user = new User(email, passwordEncoder.encode(UUID.randomUUID().toString()));
+            user = userRepository.save(user);
+        }
+
+        Profile profile = profileRepository.findById(user.getId()).orElse(null);
+        String displayName = null;
+        if (profile == null) {
+            displayName = email.split("@")[0];
+            if (supabaseUser.getUser_metadata() != null) {
+                if (supabaseUser.getUser_metadata().getFull_name() != null && !supabaseUser.getUser_metadata().getFull_name().trim().isEmpty()) {
+                    displayName = supabaseUser.getUser_metadata().getFull_name();
+                } else if (supabaseUser.getUser_metadata().getName() != null && !supabaseUser.getUser_metadata().getName().trim().isEmpty()) {
+                    displayName = supabaseUser.getUser_metadata().getName();
+                }
+            }
+            profile = new Profile(user, displayName);
+            profileRepository.save(profile);
+        } else {
+            displayName = profile.getDisplayName();
+        }
+
+        String jwt = tokenProvider.generateToken(user.getId());
+        return ResponseEntity.ok(new AuthResponse(jwt, user.getId(), user.getEmail(), displayName));
+    }
+
+    private SupabaseUser verifySupabaseToken(String token) {
+        String supabaseUrl = System.getenv("SUPABASE_URL");
+        if (supabaseUrl == null || supabaseUrl.isEmpty()) {
+            supabaseUrl = "https://hydypypilakvnmfjyqbt.supabase.co";
+        }
+        
+        String supabaseKey = System.getenv("SUPABASE_PUBLISHABLE_KEY");
+        if (supabaseKey == null || supabaseKey.isEmpty()) {
+            supabaseKey = "sb_publishable_s2ybi_nv0yjBF9SIfGSErw__OOYeQqv";
+        }
+
+        String url = supabaseUrl + "/auth/v1/user";
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        headers.set("apikey", supabaseKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            return restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    SupabaseUser.class
+            ).getBody();
+        } catch (HttpClientErrorException e) {
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
@@ -93,6 +172,37 @@ public class AuthController {
     }
 
     // --- DTO Classes ---
+
+    public static class GoogleLoginRequest {
+        @NotBlank(message = "Token is required")
+        private String token;
+
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+    }
+
+    public static class SupabaseUser {
+        private String id;
+        private String email;
+        private UserMetadata user_metadata;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public UserMetadata getUser_metadata() { return user_metadata; }
+        public void setUser_metadata(UserMetadata user_metadata) { this.user_metadata = user_metadata; }
+
+        public static class UserMetadata {
+            private String name;
+            private String full_name;
+
+            public String getName() { return name; }
+            public void setName(String name) { this.name = name; }
+            public String getFull_name() { return full_name; }
+            public void setFull_name(String full_name) { this.full_name = full_name; }
+        }
+    }
 
     public static class LoginRequest {
         @NotBlank(message = "Email is required")
