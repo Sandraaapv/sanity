@@ -125,12 +125,12 @@ public class AuthController {
     private SupabaseUser verifySupabaseToken(String token) {
         String supabaseUrl = System.getenv("SUPABASE_URL");
         if (supabaseUrl == null || supabaseUrl.isEmpty()) {
-            supabaseUrl = "https://hydypypilakvnmfjyqbt.supabase.co";
+            supabaseUrl = "https://uopjhgncifhemyjdbuoy.supabase.co";
         }
         
         String supabaseKey = System.getenv("SUPABASE_PUBLISHABLE_KEY");
         if (supabaseKey == null || supabaseKey.isEmpty()) {
-            supabaseKey = "sb_publishable_s2ybi_nv0yjBF9SIfGSErw__OOYeQqv";
+            supabaseKey = "sb_publishable_czB3_DN-o_wj2gKaN6gIsg_-1GC8gyq";
         }
 
         String url = supabaseUrl + "/auth/v1/user";

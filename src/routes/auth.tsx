@@ -115,7 +115,7 @@ function AuthPage() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-12 px-4 py-4 md:p-0 justify-center">
+    <div className="h-screen relative overflow-y-auto overflow-x-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-12 px-4 py-4 md:p-0 justify-center">
       {/* 3D Model Column (7 cols on desktop, compact header on mobile) */}
       <div className="relative w-full md:col-span-7 flex flex-col items-center justify-center select-none md:pointer-events-auto z-10 shrink-0 h-[150px] md:h-auto">
         <div
