@@ -214,9 +214,6 @@ export function NotesPanel() {
       {/* LEFT SIDEBAR PANEL */}
       <div className="flex md:flex-col items-center justify-between md:justify-start md:py-4 gap-6 md:w-20 md:border-r border-border/40 shrink-0">
         <div className="flex md:flex-col items-center gap-4">
-          <span className="text-[10px] font-black tracking-widest uppercase md:rotate-90 md:my-10 md:origin-center select-none text-muted-foreground/60">
-            Docket
-          </span>
           <button
             onClick={() => {
               setDraft({ title: "", content: "", color: NOTE_COLORS[0].value });

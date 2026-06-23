@@ -8,6 +8,7 @@ type EventRow = {
   description: string | null;
   starts_at: string;
   ends_at: string | null;
+  all_day?: boolean;
   color: string;
 };
 
@@ -39,6 +40,7 @@ export function AgendaPanel() {
     description: "",
     starts: "",
     ends: "",
+    allDay: true,
     color: palette[1],
   });
 
@@ -100,14 +102,14 @@ export function AgendaPanel() {
 
   const openCreate = (d?: Date) => {
     const base = d ?? selected;
-    const local = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 9, 0);
-    const isoLocal = (dd: Date) =>
-      new Date(dd.getTime() - dd.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const isoDate = (dd: Date) =>
+      new Date(dd.getTime() - dd.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     setForm({
       title: "",
       description: "",
-      starts: isoLocal(local),
-      ends: isoLocal(new Date(local.getTime() + 60 * 60 * 1000)),
+      starts: isoDate(base),
+      ends: isoDate(base),
+      allDay: true,
       color: palette[1],
     });
     if (d) setSelected(d);
@@ -118,11 +120,27 @@ export function AgendaPanel() {
     e.preventDefault();
     if (!form.title.trim() || !form.starts) return;
     try {
+      let startsAtStr = "";
+      let endsAtStr: string | null = null;
+
+      if (form.allDay) {
+        const [year, month, day] = form.starts.split("-").map(Number);
+        startsAtStr = new Date(year, month - 1, day, 0, 0, 0).toISOString();
+        if (form.ends) {
+          const [ey, em, ed] = form.ends.split("-").map(Number);
+          endsAtStr = new Date(ey, em - 1, ed, 23, 59, 59).toISOString();
+        }
+      } else {
+        startsAtStr = new Date(form.starts).toISOString();
+        endsAtStr = form.ends ? new Date(form.ends).toISOString() : null;
+      }
+
       const { data } = await api.post("/events", {
         title: form.title.trim(),
         description: form.description.trim() || null,
-        starts_at: new Date(form.starts).toISOString(),
-        ends_at: form.ends ? new Date(form.ends).toISOString() : null,
+        starts_at: startsAtStr,
+        ends_at: endsAtStr,
+        all_day: form.allDay,
         color: form.color,
       });
       setEvents((p) => [...p, data as EventRow]);
@@ -275,18 +293,20 @@ export function AgendaPanel() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
-                  <Clock className="w-3 h-3" />
-                  {new Date(e.starts_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                  {e.ends_at &&
-                    ` – ${new Date(e.ends_at).toLocaleTimeString([], {
+                {!e.all_day && (
+                  <div className="mt-1 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
+                    <Clock className="w-3 h-3" />
+                    {new Date(e.starts_at).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
-                    })}`}
-                </div>
+                    })}
+                    {e.ends_at &&
+                      ` – ${new Date(e.ends_at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`}
+                  </div>
+                )}
                 {e.description && (
                   <p className="text-xs text-muted-foreground mt-2">{e.description}</p>
                 )}
@@ -336,13 +356,40 @@ export function AgendaPanel() {
               rows={2}
               className="w-full bg-input/40 border border-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-rose-gold/60 resize-none"
             />
+            <div className="flex items-center gap-2 py-1">
+              <input
+                type="checkbox"
+                id="allDay"
+                checked={form.allDay}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  setForm((p) => {
+                    let nextStarts = p.starts;
+                    let nextEnds = p.ends;
+                    if (isChecked) {
+                      if (p.starts.includes("T")) nextStarts = p.starts.split("T")[0];
+                      if (p.ends.includes("T")) nextEnds = p.ends.split("T")[0];
+                    } else {
+                      if (!p.starts.includes("T")) nextStarts = `${p.starts}T09:00`;
+                      if (!p.ends.includes("T")) nextEnds = `${p.ends}T10:00`;
+                    }
+                    return { ...p, allDay: isChecked, starts: nextStarts, ends: nextEnds };
+                  });
+                }}
+                className="w-4 h-4 rounded border-border bg-input/40 text-foreground cursor-pointer"
+              />
+              <label htmlFor="allDay" className="text-xs text-muted-foreground cursor-pointer select-none">
+                All-day event (no specific time)
+              </label>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   Starts
                 </span>
                 <input
-                  type="datetime-local"
+                  type={form.allDay ? "date" : "datetime-local"}
                   value={form.starts}
                   onChange={(e) => setForm((p) => ({ ...p, starts: e.target.value }))}
                   className="mt-1 w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60"
@@ -353,7 +400,7 @@ export function AgendaPanel() {
                   Ends
                 </span>
                 <input
-                  type="datetime-local"
+                  type={form.allDay ? "date" : "datetime-local"}
                   value={form.ends}
                   onChange={(e) => setForm((p) => ({ ...p, ends: e.target.value }))}
                   className="mt-1 w-full bg-input/40 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-gold/60"

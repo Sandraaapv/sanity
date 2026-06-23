@@ -68,6 +68,7 @@ public class EventController {
         event.setDescription(request.getDescription());
         event.setStartsAt(request.getStartsAt());
         event.setEndsAt(request.getEndsAt());
+        event.setAllDay(request.isAllDay());
         event.setColor(request.getColor() != null ? request.getColor() : "#c4b5fd");
 
         Event saved = eventRepository.save(event);
@@ -94,6 +95,7 @@ public class EventController {
         }
         // Allows setting to null explicitly
         event.setEndsAt(request.getEndsAt());
+        event.setAllDay(request.isAllDay());
         if (request.getColor() != null) {
             event.setColor(request.getColor());
         }
@@ -125,6 +127,9 @@ public class EventController {
 
         @JsonProperty("ends_at")
         private Instant endsAt;
+
+        @JsonProperty("all_day")
+        private boolean allDay;
         
         private String color;
 
@@ -134,6 +139,7 @@ public class EventController {
             this.description = event.getDescription();
             this.startsAt = event.getStartsAt();
             this.endsAt = event.getEndsAt();
+            this.allDay = event.isAllDay();
             this.color = event.getColor();
         }
 
@@ -155,6 +161,9 @@ public class EventController {
         @JsonProperty("ends_at")
         private Instant endsAt;
 
+        @JsonProperty("all_day")
+        private boolean allDay;
+
         private String color;
 
         public String getTitle() { return title; }
@@ -164,6 +173,8 @@ public class EventController {
         public void setStartsAt(Instant startsAt) { this.startsAt = startsAt; }
         public Instant getEndsAt() { return endsAt; }
         public void setEndsAt(Instant endsAt) { this.endsAt = endsAt; }
+        public boolean isAllDay() { return allDay; }
+        public void setAllDay(boolean allDay) { this.allDay = allDay; }
         public String getColor() { return color; }
         public void setColor(String color) { this.color = color; }
     }

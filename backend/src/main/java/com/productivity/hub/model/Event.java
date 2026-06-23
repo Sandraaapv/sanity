@@ -28,6 +28,9 @@ public class Event {
     @Column(name = "ends_at")
     private Instant endsAt;
 
+    @Column(name = "all_day", nullable = false)
+    private boolean allDay = false;
+
     @Column(nullable = false)
     private String color;
 
@@ -90,6 +93,14 @@ public class Event {
 
     public void setEndsAt(Instant endsAt) {
         this.endsAt = endsAt;
+    }
+
+    public boolean isAllDay() {
+        return allDay;
+    }
+
+    public void setAllDay(boolean allDay) {
+        this.allDay = allDay;
     }
 
     public String getColor() {

@@ -1,0 +1,1 @@
+ALTER TABLE public.events ADD COLUMN all_day BOOLEAN NOT NULL DEFAULT false;
