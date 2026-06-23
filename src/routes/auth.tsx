@@ -95,42 +95,42 @@ function AuthPage() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background text-foreground flex flex-col lg:grid lg:grid-cols-12 px-4 py-8 lg:p-0">
-      {/* 3D Model Column (7 cols on desktop, absolute overlay behind card on mobile) */}
-      <div className="absolute inset-0 lg:relative lg:col-span-7 flex flex-col items-center justify-center p-6 select-none pointer-events-none lg:pointer-events-auto z-10">
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-12 px-4 py-4 md:p-0 justify-center">
+      {/* 3D Model Column (7 cols on desktop, compact header on mobile) */}
+      <div className="relative w-full md:col-span-7 flex flex-col items-center justify-center select-none md:pointer-events-auto z-10 shrink-0 h-[150px] md:h-auto">
         <div
-          className="absolute w-[500px] h-[500px] rounded-full opacity-40 blur-3xl pointer-events-none"
+          className="absolute w-[200px] h-[200px] md:w-[500px] md:h-[500px] rounded-full opacity-40 blur-3xl pointer-events-none"
           style={{ background: "var(--gradient-glow)" }}
         />
         
         <div className="relative w-full max-w-lg flex flex-col items-center text-center">
           {/* Canvas Wrapper */}
-          <div className="w-full h-[320px] lg:h-[450px]">
+          <div className="w-full h-[150px] md:h-[500px]">
             <Auth3DScene />
           </div>
           
-          {/* Subtle warm typography tagline */}
-          <div className="hidden lg:block space-y-2 mt-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h2 className="text-lg font-bold tracking-wider uppercase text-foreground">
+          {/* Subtle warm typography tagline (visible only on desktop/tablet) */}
+          <div className="hidden md:block space-y-1.5 mt-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <h2 className="text-sm md:text-lg font-bold tracking-wider uppercase text-foreground">
               Restore order to your mind
             </h2>
-            <p className="text-xs text-muted-foreground max-w-sm font-medium">
+            <p className="text-[10px] md:text-xs text-muted-foreground max-w-sm font-medium">
               Organize your tasks, draft elegant notes, schedule your agenda, and track focused study sessions in a unified dashboard.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Form Card Column (5 cols on desktop, centered on top on mobile) */}
-      <div className="relative w-full max-w-md mx-auto my-auto lg:my-0 lg:max-w-none lg:col-span-5 lg:h-screen lg:flex lg:items-center lg:justify-center lg:px-12 lg:border-l lg:border-border/30 bg-background/60 lg:bg-background/20 backdrop-blur-xl lg:backdrop-blur-none z-20">
+      {/* Form Card Column (5 cols on desktop, centered below 3D model on mobile) */}
+      <div className="relative w-full max-w-md mx-auto md:my-0 lg:max-w-none md:col-span-5 md:h-screen md:flex md:items-center md:justify-center md:px-12 md:border-l md:border-border/30 bg-transparent z-20 shrink-0 mt-2 md:mt-0">
         <div
           className="pointer-events-none absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
           style={{ background: "radial-gradient(circle, oklch(0.78 0.08 310 / 0.4), transparent 60%)" }}
         />
 
         <div className="w-full max-w-sm">
-          <div className="text-center mb-6 lg:mb-8">
-            <h1 className="text-4xl sm:text-5xl font-black tracking-wider uppercase text-foreground">
+          <div className="text-center mb-3 md:mb-8">
+            <h1 className="text-3xl md:text-5xl font-black tracking-wider uppercase text-foreground">
               SANITY
             </h1>
           </div>

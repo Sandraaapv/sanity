@@ -16,7 +16,7 @@ export function Auth3DScene() {
     scene.background = null;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.z = 7.5;
+    camera.position.z = width < height ? 9.8 : 7.5;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -391,6 +391,13 @@ export function Auth3DScene() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
 
+      // Zoom out if portrait aspect ratio (w < h) to fit the orbiters
+      if (w < h) {
+        camera.position.z = 9.8;
+      } else {
+        camera.position.z = 7.5;
+      }
+
       renderer.setSize(w, h);
     };
 
@@ -442,5 +449,5 @@ export function Auth3DScene() {
     };
   }, []);
 
-  return <div ref={containerRef} className="w-full h-full min-h-[350px] lg:min-h-[500px]" />;
+  return <div ref={containerRef} className="w-full h-full relative" />;
 }
