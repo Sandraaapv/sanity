@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/hub/theme";
+import { Auth3DScene } from "@/components/auth/Auth3DScene";
 import { api } from "@/lib/api";
 import axios from "axios";
 
@@ -94,137 +95,161 @@ function AuthPage() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background text-foreground grid place-items-center px-4 py-10">
-      <div
-        className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-40 blur-3xl"
-        style={{ background: "var(--gradient-glow)" }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-60 -right-40 w-[700px] h-[700px] rounded-full opacity-30 blur-3xl"
-        style={{ background: "radial-gradient(circle, oklch(0.78 0.08 310 / 0.4), transparent 60%)" }}
-      />
-
-      <div className="relative w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-black tracking-wider uppercase text-foreground">
-            SANITY
-          </h1>
-        </div>
-
-        <div className="glass rounded-3xl p-6 sm:p-8 overflow-hidden">
-          {/* Slider toggle */}
-          <div className="relative grid grid-cols-2 rounded-2xl border border-border bg-card/50 p-1 mb-6">
-            <span
-              className="absolute top-1 bottom-1 left-1 rounded-xl transition-all duration-500 ease-out"
-              style={{
-                width: "calc(50% - 4px)",
-                transform: isSignup ? "translateX(100%)" : "translateX(0)",
-                backgroundImage: "var(--gradient-accent)",
-              }}
-            />
-            {(["login", "signup"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => {
-                  setMode(m);
-                  setError(null);
-                }}
-                className={`relative z-10 py-2.5 text-xs uppercase tracking-[0.18em] transition-colors ${
-                  mode === m ? "text-[#1a1a1a] font-semibold" : "text-muted-foreground"
-                }`}
-              >
-                {m === "login" ? "Sign in" : "Sign up"}
-              </button>
-            ))}
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground flex flex-col lg:grid lg:grid-cols-12 px-4 py-8 lg:p-0">
+      {/* 3D Model Column (7 cols on desktop, absolute overlay behind card on mobile) */}
+      <div className="absolute inset-0 lg:relative lg:col-span-7 flex flex-col items-center justify-center p-6 select-none pointer-events-none lg:pointer-events-auto z-10">
+        <div
+          className="absolute w-[500px] h-[500px] rounded-full opacity-40 blur-3xl pointer-events-none"
+          style={{ background: "var(--gradient-glow)" }}
+        />
+        
+        <div className="relative w-full max-w-lg flex flex-col items-center text-center">
+          {/* Canvas Wrapper */}
+          <div className="w-full h-[320px] lg:h-[450px]">
+            <Auth3DScene />
           </div>
-
-          {/* Sliding panels */}
-          <div className="relative overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-out"
-              style={{ transform: isSignup ? "translateX(-100%)" : "translateX(0)" }}
-            >
-              {/* LOGIN */}
-              <form onSubmit={submit} className="w-full shrink-0 space-y-3 pr-2">
-                <Field
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={setEmail}
-                  required
-                  autoComplete="email"
-                />
-                <Field
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={setPassword}
-                  required
-                  autoComplete="current-password"
-                />
-                <SubmitButton loading={loading} disabled={isSignup}>
-                  Sign in
-                </SubmitButton>
-              </form>
-
-              {/* SIGNUP */}
-              <form onSubmit={submit} className="w-full shrink-0 space-y-3 pl-2">
-                <Field label="Display name" value={displayName} onChange={setDisplayName} />
-                <Field
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={setEmail}
-                  required
-                  autoComplete="email"
-                />
-                <Field
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={setPassword}
-                  required
-                  autoComplete="new-password"
-                  hint="At least 6 characters"
-                />
-                <SubmitButton loading={loading} disabled={!isSignup}>
-                  Create account
-                </SubmitButton>
-              </form>
-            </div>
-          </div>
-
-          {error && (
-            <p className="mt-3 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">
-              {error}
+          
+          {/* Subtle warm typography tagline */}
+          <div className="hidden lg:block space-y-2 mt-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <h2 className="text-lg font-bold tracking-wider uppercase text-foreground">
+              Restore order to your mind
+            </h2>
+            <p className="text-xs text-muted-foreground max-w-sm font-medium">
+              Organize your tasks, draft elegant notes, schedule your agenda, and track focused study sessions in a unified dashboard.
             </p>
-          )}
+          </div>
+        </div>
+      </div>
 
-          <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or
-            <span className="h-px flex-1 bg-border" />
+      {/* Form Card Column (5 cols on desktop, centered on top on mobile) */}
+      <div className="relative w-full max-w-md mx-auto my-auto lg:my-0 lg:max-w-none lg:col-span-5 lg:h-screen lg:flex lg:items-center lg:justify-center lg:px-12 lg:border-l lg:border-border/30 bg-background/60 lg:bg-background/20 backdrop-blur-xl lg:backdrop-blur-none z-20">
+        <div
+          className="pointer-events-none absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
+          style={{ background: "radial-gradient(circle, oklch(0.78 0.08 310 / 0.4), transparent 60%)" }}
+        />
+
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-6 lg:mb-8">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-wider uppercase text-foreground">
+              SANITY
+            </h1>
           </div>
 
-          <button
-            type="button"
-            onClick={google}
-            className="w-full inline-flex items-center justify-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/40 transition py-2.5 text-sm font-medium"
-          >
-            <GoogleGlyph />
-            Continue with Google
-          </button>
+          <div className="glass rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xl border border-border/40">
+            {/* Slider toggle */}
+            <div className="relative grid grid-cols-2 rounded-2xl border border-border bg-card/50 p-1 mb-6">
+              <span
+                className="absolute top-1 bottom-1 left-1 rounded-xl transition-all duration-500 ease-out"
+                style={{
+                  width: "calc(50% - 4px)",
+                  transform: isSignup ? "translateX(100%)" : "translateX(0)",
+                  backgroundImage: "var(--gradient-accent)",
+                }}
+              />
+              {(["login", "signup"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => {
+                    setMode(m);
+                    setError(null);
+                  }}
+                  className={`relative z-10 py-2.5 text-xs uppercase tracking-[0.18em] transition-colors ${
+                    mode === m ? "text-[#1a1a1a] font-semibold" : "text-muted-foreground"
+                  }`}
+                >
+                  {m === "login" ? "Sign in" : "Sign up"}
+                </button>
+              ))}
+            </div>
 
-          <p className="mt-6 text-center text-[11px] text-muted-foreground">
-            {isSignup ? "Already have an account?" : "New to SANITY?"}{" "}
+            {/* Sliding panels */}
+            <div className="relative overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: isSignup ? "translateX(-100%)" : "translateX(0)" }}
+              >
+                {/* LOGIN */}
+                <form onSubmit={submit} className="w-full shrink-0 space-y-3 pr-2">
+                  <Field
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={setEmail}
+                    required
+                    autoComplete="email"
+                  />
+                  <Field
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={setPassword}
+                    required
+                    autoComplete="current-password"
+                  />
+                  <SubmitButton loading={loading} disabled={isSignup}>
+                    Sign in
+                  </SubmitButton>
+                </form>
+
+                {/* SIGNUP */}
+                <form onSubmit={submit} className="w-full shrink-0 space-y-3 pl-2">
+                  <Field label="Display name" value={displayName} onChange={setDisplayName} />
+                  <Field
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={setEmail}
+                    required
+                    autoComplete="email"
+                  />
+                  <Field
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={setPassword}
+                    required
+                    autoComplete="new-password"
+                    hint="At least 6 characters"
+                  />
+                  <SubmitButton loading={loading} disabled={!isSignup}>
+                    Create account
+                  </SubmitButton>
+                </form>
+              </div>
+            </div>
+
+            {error && (
+              <p className="mt-3 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              or
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
             <button
               type="button"
-              onClick={() => setMode(isSignup ? "login" : "signup")}
-              className="underline underline-offset-4 hover:text-foreground"
+              onClick={google}
+              className="w-full inline-flex items-center justify-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/40 transition py-2.5 text-sm font-medium"
             >
-              {isSignup ? "Sign in" : "Create one"}
+              <GoogleGlyph />
+              Continue with Google
             </button>
-          </p>
+
+            <p className="mt-6 text-center text-[11px] text-muted-foreground">
+              {isSignup ? "Already have an account?" : "New to SANITY?"}{" "}
+              <button
+                type="button"
+                onClick={() => setMode(isSignup ? "login" : "signup")}
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                {isSignup ? "Sign in" : "Create one"}
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>
