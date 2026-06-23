@@ -95,7 +95,7 @@ function AuthPage() {
   const isSignup = mode === "signup";
 
   return (
-    <div className="min-h-screen relative overflow-y-auto md:overflow-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-12 px-4 py-4 md:p-0 justify-center">
+    <div className="min-h-screen relative overflow-x-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-12 px-4 py-4 md:p-0 justify-center">
       {/* 3D Model Column (7 cols on desktop, compact header on mobile) */}
       <div className="relative w-full md:col-span-7 flex flex-col items-center justify-center select-none md:pointer-events-auto z-10 shrink-0 h-[150px] md:h-auto">
         <div
@@ -122,13 +122,13 @@ function AuthPage() {
       </div>
 
       {/* Form Card Column (5 cols on desktop, centered below 3D model on mobile) */}
-      <div className="relative w-full max-w-md mx-auto md:my-0 lg:max-w-none md:col-span-5 md:h-screen md:flex md:items-center md:justify-center md:px-12 md:border-l md:border-border/30 bg-transparent z-20 shrink-0 mt-2 md:mt-0">
+      <div className="relative w-full max-w-md mx-auto md:my-0 lg:max-w-none md:col-span-5 md:min-h-screen md:flex md:flex-col md:items-center md:px-12 md:border-l md:border-border/30 bg-transparent z-20 shrink-0 mt-2 md:mt-0">
         <div
           className="pointer-events-none absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
           style={{ background: "radial-gradient(circle, oklch(0.78 0.08 310 / 0.4), transparent 60%)" }}
         />
 
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm md:my-auto py-6 md:py-12">
           <div className="text-center mb-3 md:mb-8">
             <h1 className="text-3xl md:text-5xl font-black tracking-wider uppercase text-foreground">
               SANITY

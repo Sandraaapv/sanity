@@ -348,8 +348,9 @@ export function Auth3DScene() {
       tasksGroup.position.x = 2.1 + Math.cos(elapsedTime * 0.4 + 1.0) * 0.15;
       tasksGroup.position.y = 1.1 + Math.sin(elapsedTime * 0.7 + 1.5) * 0.15;
       tasksGroup.position.z = 0.2 + Math.cos(elapsedTime * 0.5) * 0.1;
-      tasksGroup.rotation.y = -elapsedTime * 0.25;
-      tasksGroup.rotation.z = Math.cos(elapsedTime * 0.3) * 0.08;
+      tasksGroup.rotation.y = -elapsedTime * 0.2;
+      tasksGroup.rotation.x = Math.sin(elapsedTime * 0.3) * 0.1 + 0.35; // Continuous tilt
+      tasksGroup.rotation.z = Math.cos(elapsedTime * 0.3) * 0.08 + 0.2;
 
       // Agenda Calendar
       agendaGroup.position.x = -1.9 + Math.sin(elapsedTime * 0.6 + 2.0) * 0.15;
