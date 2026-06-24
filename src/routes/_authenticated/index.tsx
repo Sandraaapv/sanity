@@ -77,7 +77,7 @@ function Shell() {
         <div className="flex flex-col">
           {/* Logo & Mobile controls */}
           <div className="px-6 py-4 flex items-center justify-between md:py-6 md:px-6">
-            <span className="text-3xl font-black tracking-widest uppercase">SANITY</span>
+            <span className="text-3xl font-black tracking-widest uppercase inline-block pt-1">SANITY</span>
             <div className="flex md:hidden items-center gap-2">
               <button
                 onClick={cycleTheme}
