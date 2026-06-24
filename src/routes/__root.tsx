@@ -72,6 +72,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -115,6 +118,29 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.access_token) {
+        try {
+          const { data } = await api.post("/auth/google", {
+            token: session.access_token,
+          });
+          localStorage.setItem("token", data.token);
+          // Sign out of Supabase locally since we've established our own session
+          await supabase.auth.signOut();
+          window.location.href = "/";
+        } catch (err) {
+          console.error("Google authentication failed on backend", err);
+          await supabase.auth.signOut();
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
