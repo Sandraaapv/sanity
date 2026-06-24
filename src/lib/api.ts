@@ -3,7 +3,7 @@ import axios from "axios";
 // Centralized API client. Stub instance with request interceptor that
 // attaches a mock bearer token from localStorage.
 export const api = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   headers: { "Content-Type": "application/json" },
 });
 
