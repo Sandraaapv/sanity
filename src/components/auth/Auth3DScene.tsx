@@ -18,7 +18,7 @@ export function Auth3DScene({
     isTyping,
     isHoveringLogo,
     isLoginSuccess,
-    mouse: { x: 0, y: 0, targetX: 0, targetY: 0, vx: 0, vy: 0 },
+    mouse: { x: 0, y: 0, targetX: 0, targetY: 0 },
     typingPulseTime: 0,
   });
 
@@ -44,7 +44,7 @@ export function Auth3DScene({
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
-    // 1. Scene, Camera, Renderer Setup (100% Transparent background, zero fog artifacts)
+    // 1. Three.js Scene, Camera, Renderer
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
@@ -55,61 +55,63 @@ export function Auth3DScene({
     renderer.setSize(width, height);
     container.appendChild(renderer.domElement);
 
-    // 2. Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // 2. Ambient & Point Lighting for Flame Emissive Glow
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
 
-    const pointLight1 = new THREE.PointLight("#F9A8D4", 3.5, 25);
-    pointLight1.position.set(4, 4, 3);
-    scene.add(pointLight1);
+    const flameLight = new THREE.PointLight("#F9A8D4", 4.0, 25);
+    flameLight.position.set(0, 0, 2);
+    scene.add(flameLight);
 
-    const pointLight2 = new THREE.PointLight("#E9D5FF", 2.8, 20);
-    pointLight2.position.set(-4, -3, 2);
-    scene.add(pointLight2);
-
-    // 3. 15,000 Particle "Quantum Vortex Galaxy" (ZERO BALLS, ZERO SPHERES)
-    const PARTICLE_COUNT = 14000;
+    // 3. 10,000 Particle Animated Pink Flame
+    const PARTICLE_COUNT = 9500;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(PARTICLE_COUNT * 3);
-    const originalPositions = new Float32Array(PARTICLE_COUNT * 3);
-    const velocities = new Float32Array(PARTICLE_COUNT * 3);
     const colors = new Float32Array(PARTICLE_COUNT * 3);
+    const velocities = new Float32Array(PARTICLE_COUNT * 3);
+    const initialY = new Float32Array(PARTICLE_COUNT);
+    const flameSpeeds = new Float32Array(PARTICLE_COUNT);
 
+    const colorWhite = new THREE.Color("#ffffff");
     const colorPink = new THREE.Color("#F9A8D4");
     const colorLavender = new THREE.Color("#E9D5FF");
-    const colorWhite = new THREE.Color("#ffffff");
 
-    // Generate logarithmic spiral galaxy / neural wave structure
+    // Initialize teardrop flame particle distribution
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3;
 
-      // Logarithmic Spiral Arms + Fluid Depth
-      const armIndex = i % 4;
-      const armAngle = (armIndex * Math.PI * 2) / 4;
-      const distance = Math.pow(Math.random(), 0.6) * 3.6 + 0.2;
-      const angle = distance * 1.8 + armAngle + (Math.random() - 0.5) * 0.4;
+      // Vertical span from base (-2.0) to top tip (+2.2)
+      const yProgress = Math.random(); // 0 to 1
+      const y = -2.0 + yProgress * 4.2;
 
-      const x = Math.cos(angle) * distance;
-      const y = Math.sin(angle) * distance * 0.75;
-      const z = (Math.random() - 0.5) * 1.8 * (1 - distance / 4);
+      // Flame width tapers outwards at base/mid and pinches tightly at the top
+      const taper = Math.sin(Math.PI * yProgress) * (1.2 * Math.pow(1 - yProgress * 0.4, 1.2));
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * taper * 0.95;
+
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius * 0.8;
 
       positions[idx] = x;
       positions[idx + 1] = y;
       positions[idx + 2] = z;
 
-      originalPositions[idx] = x;
-      originalPositions[idx + 1] = y;
-      originalPositions[idx + 2] = z;
+      initialY[i] = y;
+      flameSpeeds[i] = 0.015 + Math.random() * 0.025;
 
       velocities[idx] = (Math.random() - 0.5) * 0.005;
-      velocities[idx + 1] = (Math.random() - 0.5) * 0.005;
+      velocities[idx + 1] = flameSpeeds[i];
       velocities[idx + 2] = (Math.random() - 0.5) * 0.005;
 
-      // Color distribution: pink -> lavender -> white
-      let c = colorWhite;
-      const randVal = Math.random();
-      if (randVal < 0.65) c = colorPink;
-      else if (randVal < 0.9) c = colorLavender;
+      // Emissive Color Gradient: White at core base -> Pink at mid -> Lavender at flickering tips
+      let c = colorPink;
+      if (yProgress < 0.25) {
+        c = Math.random() < 0.5 ? colorWhite : colorPink;
+      } else if (yProgress < 0.75) {
+        c = Math.random() < 0.7 ? colorPink : colorLavender;
+      } else {
+        c = Math.random() < 0.4 ? colorPink : colorLavender;
+      }
 
       colors[idx] = c.r;
       colors[idx + 1] = c.g;
@@ -120,48 +122,21 @@ export function Auth3DScene({
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     const particleMaterial = new THREE.PointsMaterial({
-      size: 0.045,
+      size: 0.052,
       vertexColors: true,
       transparent: true,
       opacity: 0.9,
       blending: THREE.AdditiveBlending,
     });
 
-    const particleSystem = new THREE.Points(geometry, particleMaterial);
-    scene.add(particleSystem);
+    const flameMesh = new THREE.Points(geometry, particleMaterial);
+    scene.add(flameMesh);
 
-    // 4. Neural Constellation Streamlines
-    const LINE_MAX = 500;
-    const lineGeometry = new THREE.BufferGeometry();
-    const linePositions = new Float32Array(LINE_MAX * 6);
-    lineGeometry.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
-
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color("#F9A8D4"),
-      transparent: true,
-      opacity: 0.3,
-      blending: THREE.AdditiveBlending,
-    });
-
-    const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
-    scene.add(lineSegments);
-
-    // Mouse Interaction
-    let prevMouseX = 0;
-    let prevMouseY = 0;
-
+    // Mouse Interaction setup
     const handleMouseMove = (e: MouseEvent) => {
       const state = sceneStateRef.current;
-      const nextTargetX = (e.clientX / window.innerWidth) * 2 - 1;
-      const nextTargetY = -(e.clientY / window.innerHeight) * 2 + 1;
-
-      state.mouse.vx = nextTargetX - prevMouseX;
-      state.mouse.vy = nextTargetY - prevMouseY;
-      prevMouseX = nextTargetX;
-      prevMouseY = nextTargetY;
-
-      state.mouse.targetX = nextTargetX;
-      state.mouse.targetY = nextTargetY;
+      state.mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
+      state.mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -174,97 +149,79 @@ export function Auth3DScene({
       const time = clock.getElapsedTime();
       const state = sceneStateRef.current;
 
-      // Sensitive lerp tracking
-      state.mouse.x += (state.mouse.targetX - state.mouse.x) * 0.15;
-      state.mouse.y += (state.mouse.targetY - state.mouse.y) * 0.15;
+      // Smooth mouse lerp
+      state.mouse.x += (state.mouse.targetX - state.mouse.x) * 0.1;
+      state.mouse.y += (state.mouse.targetY - state.mouse.y) * 0.1;
 
-      // Galaxy rotation & mouse tilt
-      particleSystem.rotation.z = time * 0.08;
-      particleSystem.rotation.y = time * 0.05 + state.mouse.x * 0.7;
-      particleSystem.rotation.x = Math.sin(time * 0.08) * 0.15 - state.mouse.y * 0.7;
+      // Flame bends and sways toward/away from cursor movement (like wind)
+      const windSwayX = Math.sin(time * 2.8) * 0.15 + state.mouse.x * 0.7;
+      const windSwayZ = Math.cos(time * 2.2) * 0.1 - state.mouse.y * 0.5;
+
+      flameMesh.rotation.z = -windSwayX * 0.25;
+      flameMesh.rotation.y = time * 0.2 + state.mouse.x * 0.4;
+      flameMesh.position.x = windSwayX * 0.4;
+
+      // Flame intensity pulse on keypress
+      if (state.typingPulseTime > 0) {
+        state.typingPulseTime -= 0.025;
+        particleMaterial.size = 0.052 + state.typingPulseTime * 0.04;
+        flameLight.intensity = 4.0 + state.typingPulseTime * 3.0;
+      } else {
+        particleMaterial.size = 0.052;
+        flameLight.intensity = 4.0 + Math.sin(time * 5.0) * 0.4;
+      }
 
       const pArray = geometry.attributes.position.array as Float32Array;
 
-      // Typing pulse decay
-      if (state.typingPulseTime > 0) {
-        state.typingPulseTime -= 0.025;
-        particleMaterial.size = 0.045 + state.typingPulseTime * 0.04;
-      } else {
-        particleMaterial.size = 0.045;
-      }
-
-      // Fluid Quantum Vortex Physics
+      // Continuous Rising Flame Embers Physics
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         const idx = i * 3;
 
-        let ox = originalPositions[idx];
-        let oy = originalPositions[idx + 1];
-        let oz = originalPositions[idx + 2];
+        // Rise upwards continuously
+        pArray[idx + 1] += flameSpeeds[i];
 
-        // Zero-gravity fluid noise wave
-        const wave = Math.sin(time * 1.6 + ox * 1.2 + oy * 1.2) * 0.25 + Math.cos(time * 1.1 + oz * 1.5) * 0.2;
-        ox += ox * wave * 0.2;
-        oy += oy * wave * 0.2;
-        oz += oz * wave * 0.2;
+        // Sinuous flickers as particles ascend
+        const currY = pArray[idx + 1];
+        const yNorm = Math.min(Math.max((currY + 2.0) / 4.2, 0), 1);
 
-        // Mouse Gravitational Vortex Influence
-        const dx = pArray[idx] - state.mouse.x * 3.5;
-        const dy = pArray[idx + 1] - state.mouse.y * 3.5;
-        const dist = Math.hypot(dx, dy);
+        // Sinusoidal licking wave turbulence
+        const waveX = Math.sin(time * 4.0 + currY * 2.5) * 0.012 * (1 + yNorm * 1.5);
+        const waveZ = Math.cos(time * 3.5 + currY * 2.5) * 0.012 * (1 + yNorm * 1.5);
 
-        let targetX = ox;
-        let targetY = oy;
-        let targetZ = oz;
+        pArray[idx] += waveX;
+        pArray[idx + 2] += waveZ;
 
-        if (dist < 4.0) {
-          // Swirl + flee repulsion from cursor
-          const force = (4.0 - dist) * 1.8;
-          const swirlAngle = Math.atan2(dy, dx) + force * 0.5;
-
-          targetX += Math.cos(swirlAngle) * force * 0.8;
-          targetY += Math.sin(swirlAngle) * force * 0.8;
+        // Mouse repulsion / wind displacement
+        const mdx = pArray[idx] - state.mouse.x * 3.0;
+        const mdy = currY - state.mouse.y * 3.0;
+        const mdist = Math.hypot(mdx, mdy);
+        if (mdist < 2.5) {
+          const force = (2.5 - mdist) * 0.02;
+          pArray[idx] += (mdx / mdist) * force;
         }
 
-        // Login Success Implosion
+        // Recycle particles that reach top tip (+2.2) back to base (-2.0)
+        if (pArray[idx + 1] > 2.2) {
+          const newYProgress = Math.random() * 0.2; // Respawn near base
+          const newY = -2.0 + newYProgress * 1.0;
+
+          const taper = Math.sin(Math.PI * newYProgress) * 1.2;
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * taper * 0.8;
+
+          pArray[idx] = Math.cos(angle) * radius;
+          pArray[idx + 1] = newY;
+          pArray[idx + 2] = Math.sin(angle) * radius * 0.8;
+        }
+
+        // Login Success Flare
         if (state.isLoginSuccess) {
-          targetX *= 0.02;
-          targetY *= 0.02;
-          targetZ *= 0.02;
+          pArray[idx + 1] += 0.15;
+          particleMaterial.size = 0.08;
         }
-
-        // Ultra-flowy spring return
-        pArray[idx] += (targetX - pArray[idx]) * 0.035;
-        pArray[idx + 1] += (targetY - pArray[idx + 1]) * 0.035;
-        pArray[idx + 2] += (targetZ - pArray[idx + 2]) * 0.035;
       }
+
       geometry.attributes.position.needsUpdate = true;
-
-      // Update neural constellation lines
-      let lineVertexIdx = 0;
-      const lineArray = lineGeometry.attributes.position.array as Float32Array;
-
-      for (let i = 0; i < 200 && lineVertexIdx < LINE_MAX * 6; i += 3) {
-        const i1 = i * 3;
-        const i2 = (i + 1) * 3;
-
-        const x1 = pArray[i1];
-        const y1 = pArray[i1 + 1];
-        const z1 = pArray[i1 + 2];
-        const x2 = pArray[i2];
-        const y2 = pArray[i2 + 1];
-        const z2 = pArray[i2 + 2];
-
-        const d = Math.hypot(x1 - x2, y1 - y2, z1 - z2);
-        if (d < 1.1) {
-          lineArray[lineVertexIdx++] = x1;
-          lineArray[lineVertexIdx++] = y1;
-          lineArray[lineVertexIdx++] = z1;
-          lineArray[lineVertexIdx++] = x2;
-          lineArray[lineVertexIdx++] = y2;
-          lineArray[lineVertexIdx++] = z2;
-        }
-      }
-      lineGeometry.attributes.position.needsUpdate = true;
 
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
@@ -290,8 +247,8 @@ export function Auth3DScene({
 
       geometry.dispose();
       particleMaterial.dispose();
-      lineGeometry.dispose();
-      lineMaterial.dispose();
+      flameLight.dispose();
+      ambientLight.dispose();
 
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
