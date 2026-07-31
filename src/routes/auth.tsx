@@ -88,17 +88,27 @@ function AuthPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate valid Gmail address
+    const cleanEmail = email.trim().toLowerCase();
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!gmailRegex.test(cleanEmail)) {
+      setError("SANITY requires a valid @gmail.com email address.");
+      return;
+    }
+
     setLoading(true);
     try {
+      localStorage.removeItem("sanity_guest");
       if (mode === "signup") {
         const { data } = await api.post("/auth/signup", {
-          email,
+          email: cleanEmail,
           password,
-          displayName: displayName || email.split("@")[0],
+          displayName: displayName || cleanEmail.split("@")[0],
         });
         localStorage.setItem("token", data.token);
       } else {
-        const { data } = await api.post("/auth/login", { email, password });
+        const { data } = await api.post("/auth/login", { email: cleanEmail, password });
         localStorage.setItem("token", data.token);
       }
 
@@ -132,6 +142,15 @@ function AuthPage() {
       setError(err instanceof Error ? err.message : "Google integration failed.");
       setLoading(false);
     }
+  };
+
+  const continueAsGuest = () => {
+    localStorage.setItem("token", "guest-demo-token");
+    localStorage.setItem("sanity_guest", "true");
+    setIsLoginSuccess(true);
+    setTimeout(() => {
+      navigate({ to: "/" });
+    }, 500);
   };
 
   const isSignup = mode === "signup";
@@ -277,14 +296,25 @@ function AuthPage() {
               <span className="h-px flex-1 bg-border" />
             </div>
 
-            <button
-              type="button"
-              onClick={google}
-              className="w-full inline-flex items-center justify-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/20 transition py-2.5 text-sm font-medium"
-            >
-              <GoogleGlyph />
-              Continue with Google
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={google}
+                className="w-full inline-flex items-center justify-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/20 transition py-2.5 text-sm font-medium"
+              >
+                <GoogleGlyph />
+                Continue with Google
+              </button>
+
+              <button
+                type="button"
+                onClick={continueAsGuest}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[#F9A8D4]/40 bg-[#F9A8D4]/10 hover:bg-[#F9A8D4]/20 text-[#F9A8D4] transition py-2.5 text-xs font-bold shadow-sm"
+              >
+                <Sparkles className="w-4 h-4" />
+                Continue as Guest (Explore Workspace Tour)
+              </button>
+            </div>
 
             <p className="mt-6 text-center text-[11px] text-muted-foreground">
               {isSignup ? "Already have an account?" : "New to SANITY?"}{" "}

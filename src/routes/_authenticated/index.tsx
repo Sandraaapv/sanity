@@ -200,6 +200,26 @@ function Shell() {
         </div>
       </header>
 
+      {/* GUEST MODE DEMO BANNER */}
+      {(user?.isGuest || (typeof window !== "undefined" && localStorage.getItem("sanity_guest") === "true")) && (
+        <div className="w-full bg-[#F9A8D4]/15 border-b border-[#F9A8D4]/30 px-6 py-2 flex items-center justify-between text-xs font-semibold z-30 animate-in fade-in">
+          <div className="flex items-center gap-2 text-[#F9A8D4]">
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span>Guest Mode — Exploring workspace tour. Progress is temporary.</span>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("sanity_guest");
+              navigate({ to: "/auth", replace: true });
+            }}
+            className="px-3 py-1 rounded-full bg-[#F9A8D4] text-[#1a1a1a] font-bold text-[11px] hover:opacity-90 transition shadow-sm shrink-0"
+          >
+            Create Account / Sign In
+          </button>
+        </div>
+      )}
+
       {/* MAIN FULL-WIDTH CANVAS */}
       <main className="relative flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 pb-28">
         <div className="max-w-7xl mx-auto space-y-6">
