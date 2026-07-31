@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/hub/theme";
 import { Auth3DScene } from "@/components/auth/Auth3DScene";
+import { StarField } from "@/components/auth/StarField";
 import { api } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import axios from "axios";
@@ -31,6 +32,19 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // WebGL Particle Interaction States
+  const [isTyping, setIsTyping] = useState(false);
+  const [isHoveringLogo, setIsHoveringLogo] = useState(false);
+  const [isLoginSuccess, setIsLoginSuccess] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = (setter: (v: string) => void) => (val: string) => {
+    setter(val);
+    setIsTyping(true);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 800);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -52,7 +66,11 @@ function AuthPage() {
           localStorage.setItem("token", data.token);
           // Sign out of Supabase locally since we've established our own session
           await supabase.auth.signOut();
-          navigate({ to: "/" });
+          
+          setIsLoginSuccess(true);
+          setTimeout(() => {
+            navigate({ to: "/" });
+          }, 800);
         } catch (err) {
           setError("Failed to verify Google account on backend.");
           await supabase.auth.signOut();
@@ -83,7 +101,11 @@ function AuthPage() {
         const { data } = await api.post("/auth/login", { email, password });
         localStorage.setItem("token", data.token);
       }
-      navigate({ to: "/" });
+
+      setIsLoginSuccess(true);
+      setTimeout(() => {
+        navigate({ to: "/" });
+      }, 800);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data?.message) {
         setError(err.response.data.message);
@@ -116,46 +138,51 @@ function AuthPage() {
 
   return (
     <div className="h-screen relative overflow-y-auto overflow-x-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-12 px-4 py-4 md:p-0 justify-center">
-      {/* 3D Model Column (7 cols on desktop, compact header on mobile) */}
-      <div className="relative w-full md:col-span-7 flex flex-col items-center justify-center select-none md:pointer-events-auto z-10 shrink-0 h-[150px] md:h-auto">
-        <div
-          className="absolute w-[200px] h-[200px] md:w-[500px] md:h-[500px] rounded-full opacity-40 blur-3xl pointer-events-none"
-          style={{ background: "var(--gradient-glow)" }}
-        />
-        
-        <div className="relative w-full max-w-lg flex flex-col items-center text-center">
+      {/* 3px Scanline Overlay */}
+      <div className="scanline-overlay fixed inset-0 z-30 pointer-events-none opacity-40" />
+
+      {/* Pink Blinking Starfield Background */}
+      <StarField />
+
+      {/* 3D Model Particle Column (7 cols desktop) */}
+      <div className="relative w-full md:col-span-7 flex flex-col items-center justify-center select-none z-10 shrink-0 h-[260px] md:h-auto">
+        <div className="relative w-full max-w-lg flex flex-col items-center text-center h-full">
           {/* Canvas Wrapper */}
-          <div className="w-full h-[150px] md:h-[500px]">
-            <Auth3DScene />
+          <div className="w-full h-full md:h-[550px]">
+            <Auth3DScene
+              isTyping={isTyping}
+              isHoveringLogo={isHoveringLogo}
+              isLoginSuccess={isLoginSuccess}
+            />
           </div>
           
-          {/* Subtle warm typography tagline (visible only on desktop/tablet) */}
+          {/* Desktop Tagline */}
           <div className="hidden md:block space-y-1.5 mt-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <h2 className="text-sm md:text-lg font-bold tracking-wider uppercase text-foreground">
               Restore order to your mind
             </h2>
             <p className="text-[10px] md:text-xs text-muted-foreground max-w-sm font-medium">
-              Organize your tasks, draft elegant notes, schedule your agenda, and track focused study sessions in a unified dashboard.
+              Organize your tasks, draft elegant notes, schedule your agenda, and track focused study sessions in a unified workspace.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Form Card Column (5 cols on desktop, centered below 3D model on mobile) */}
+      {/* Form Card Column (5 cols desktop) */}
       <div className="relative w-full max-w-md mx-auto md:my-0 lg:max-w-none md:col-span-5 md:min-h-screen md:flex md:flex-col md:items-center md:px-12 md:border-l md:border-border/30 bg-transparent z-20 shrink-0 mt-2 md:mt-0">
-        <div
-          className="pointer-events-none absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, oklch(0.78 0.08 310 / 0.4), transparent 60%)" }}
-        />
-
         <div className="w-full max-w-sm md:my-auto py-6 md:py-12">
+          {/* Logo with particle morphing trigger on hover */}
           <div className="text-center mb-3 md:mb-8">
-            <h1 className="text-3xl md:text-5xl font-black tracking-wider uppercase text-foreground">
+            <h1
+              onMouseEnter={() => setIsHoveringLogo(true)}
+              onMouseLeave={() => setIsHoveringLogo(false)}
+              className="text-3xl md:text-5xl font-black tracking-wider uppercase text-foreground cursor-pointer transition-transform hover:scale-105 inline-block"
+            >
               SANITY
             </h1>
           </div>
 
-          <div className="glass rounded-3xl p-6 sm:p-8 overflow-hidden shadow-xl border border-border/40">
+          <div className="glass rounded-3xl p-6 sm:p-8 overflow-hidden shadow-2xl border border-border/40 relative">
             {/* Slider toggle */}
             <div className="relative grid grid-cols-2 rounded-2xl border border-border bg-card/50 p-1 mb-6">
               <span
@@ -173,8 +200,8 @@ function AuthPage() {
                     setMode(m);
                     setError(null);
                   }}
-                  className={`relative z-10 py-2.5 text-xs uppercase tracking-[0.18em] transition-colors ${
-                    mode === m ? "text-[#1a1a1a] font-semibold" : "text-muted-foreground"
+                  className={`relative z-10 py-2.5 text-xs uppercase tracking-[0.18em] transition-colors font-bold ${
+                    mode === m ? "text-[#1a1a1a]" : "text-muted-foreground"
                   }`}
                 >
                   {m === "login" ? "Sign in" : "Sign up"}
@@ -194,7 +221,7 @@ function AuthPage() {
                     label="Email"
                     type="email"
                     value={email}
-                    onChange={setEmail}
+                    onChange={handleInputChange(setEmail)}
                     required
                     autoComplete="email"
                   />
@@ -202,7 +229,7 @@ function AuthPage() {
                     label="Password"
                     type="password"
                     value={password}
-                    onChange={setPassword}
+                    onChange={handleInputChange(setPassword)}
                     required
                     autoComplete="current-password"
                   />
@@ -213,12 +240,12 @@ function AuthPage() {
 
                 {/* SIGNUP */}
                 <form onSubmit={submit} className="w-full shrink-0 space-y-3 pl-2">
-                  <Field label="Display name" value={displayName} onChange={setDisplayName} />
+                  <Field label="Display name" value={displayName} onChange={handleInputChange(setDisplayName)} />
                   <Field
                     label="Email"
                     type="email"
                     value={email}
-                    onChange={setEmail}
+                    onChange={handleInputChange(setEmail)}
                     required
                     autoComplete="email"
                   />
@@ -226,7 +253,7 @@ function AuthPage() {
                     label="Password"
                     type="password"
                     value={password}
-                    onChange={setPassword}
+                    onChange={handleInputChange(setPassword)}
                     required
                     autoComplete="new-password"
                     hint="At least 6 characters"
@@ -253,7 +280,7 @@ function AuthPage() {
             <button
               type="button"
               onClick={google}
-              className="w-full inline-flex items-center justify-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/40 transition py-2.5 text-sm font-medium"
+              className="w-full inline-flex items-center justify-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/20 transition py-2.5 text-sm font-medium"
             >
               <GoogleGlyph />
               Continue with Google
@@ -264,7 +291,7 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode(isSignup ? "login" : "signup")}
-                className="underline underline-offset-4 hover:text-foreground"
+                className="underline underline-offset-4 hover:text-foreground font-semibold"
               >
                 {isSignup ? "Sign in" : "Create one"}
               </button>
@@ -295,14 +322,14 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">{label}</span>
       <input
         type={type}
         value={value}
         required={required}
         autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-rose-gold/60 transition"
+        className="mt-1 w-full bg-input/40 border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-rose-gold transition"
       />
       {hint && <span className="text-[10px] text-muted-foreground mt-1 block">{hint}</span>}
     </label>
@@ -322,8 +349,8 @@ function SubmitButton({
     <button
       type="submit"
       disabled={loading || disabled}
-      className="w-full rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40 transition mt-2"
-      style={{ backgroundImage: "var(--gradient-accent)", color: "#1a1a1a" }}
+      className="w-full rounded-xl py-2.5 text-sm font-bold disabled:opacity-40 transition mt-2 cursor-pointer shadow-lg hover:opacity-90"
+      style={{ background: "linear-gradient(135deg, #F9A8D4, #E9D5FF)", color: "#1a1a1a" }}
     >
       {loading ? (
         <span className="inline-flex items-center gap-2">

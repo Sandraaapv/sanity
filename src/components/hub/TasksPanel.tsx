@@ -102,11 +102,15 @@ const getWeekDays = (date: Date) => {
   return days;
 };
 
+import { SanityScoreWidget } from "./SanityScoreWidget";
+import { MorningIntentModal } from "./MorningIntentModal";
+
 export function TasksPanel() {
   // Tasks and categories states
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   // Study states for Minimized Timer & Metrics
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -520,7 +524,14 @@ export function TasksPanel() {
         <div className="grid gap-8 lg:grid-cols-[1fr_340px] w-full items-start animate-in fade-in slide-in-from-bottom-4 duration-300">
           
           {/* LEFT COLUMN: MAIN STAGE (70%) */}
-          <div className="space-y-8 flex-1 w-full">
+          <div className="space-y-6 flex-1 w-full">
+            <MorningIntentModal />
+            <SanityScoreWidget
+              tasksCompleted={tasks.filter((t) => t.completed).length}
+              tasksPlanned={tasks.length}
+              studyMinutes={Math.round(totalStudySecondsToday / 60)}
+              streakDays={4}
+            />
             
             {/* BENTO TOP ROW: GLANCE METRICS */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
