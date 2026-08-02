@@ -65,87 +65,67 @@ export function Auth3DScene({
     coldLight.position.set(5, -3, 2);
     scene.add(coldLight);
 
-    // ── HOURGLASS WIREFRAME ────────────────────────────────────
+    // ── REALISTIC PHYSICAL GLASS HOURGLASS MESH ─────────────────
     const hourglassGroup = new THREE.Group();
     scene.add(hourglassGroup);
 
-    // Build hourglass from lathed curve — proper shape
-    const buildHourglassEdges = () => {
-      const segments = 32;
-      const rings = 28;
+    // Sample 64 points along smooth catenary hourglass profile
+    const profilePoints: THREE.Vector2[] = [];
+    const numPoints = 64;
+    for (let i = 0; i <= numPoints; i++) {
+      const t = (i / numPoints) * 2 - 1; // -1 to 1
+      const y = t * 2.2;
+      const absT = Math.abs(t);
+      const r = 0.08 + 1.28 * (absT * absT * (3 - 2 * absT));
+      profilePoints.push(new THREE.Vector2(r, y));
+    }
 
-      // Hourglass profile: radius as function of y (-2.2 to 2.2)
-      const getRadius = (y: number) => {
-        const t = Math.abs(y) / 2.2; // 0 at neck, 1 at top/bottom
-        // Catenary-like curve: narrow at center, wide at ends
-        return 0.06 + 1.35 * (t * t * (3 - 2 * t)); // smooth cubic ease
-      };
-
-      // Create rings
-      const ringGeometries: THREE.BufferGeometry[] = [];
-      for (let r = 0; r < rings; r++) {
-        const y = -2.2 + (r / (rings - 1)) * 4.4;
-        const radius = getRadius(y);
-        const ringGeo = new THREE.TorusGeometry(radius, 0.006, 4, segments);
-        const ringMesh = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
-          color: "#F9A8D4",
-          transparent: true,
-          opacity: radius < 0.15 ? 1.0 : 0.35 + (1 - Math.abs(y) / 2.2) * 0.1,
-        }));
-        ringMesh.position.y = y;
-        ringMesh.rotation.x = Math.PI / 2;
-        hourglassGroup.add(ringMesh);
-      }
-
-      // Vertical lines connecting rings
-      const lineCount = 16;
-      for (let l = 0; l < lineCount; l++) {
-        const angle = (l / lineCount) * Math.PI * 2;
-        const points: THREE.Vector3[] = [];
-
-        for (let r = 0; r < rings; r++) {
-          const y = -2.2 + (r / (rings - 1)) * 4.4;
-          const radius = getRadius(y);
-          points.push(new THREE.Vector3(
-            Math.cos(angle) * radius,
-            y,
-            Math.sin(angle) * radius
-          ));
-        }
-
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-        const lineMat = new THREE.LineBasicMaterial({
-          color: "#F9A8D4",
-          transparent: true,
-          opacity: 0.25,
-        });
-        hourglassGroup.add(new THREE.Line(lineGeo, lineMat));
-      }
-
-      return ringGeometries;
-    };
-
-    buildHourglassEdges();
-
-    // Top and bottom rim — bright
-    const rimGeo = new THREE.TorusGeometry(1.38, 0.018, 8, 80);
-    const rimMat = new THREE.MeshBasicMaterial({
+    const glassGeo = new THREE.LatheGeometry(profilePoints, 64);
+    const glassMat = new THREE.MeshPhysicalMaterial({
       color: "#ffffff",
+      transmission: 0.92,
+      opacity: 1,
       transparent: true,
-      opacity: 0.9,
+      roughness: 0.08,
+      metalness: 0.1,
+      ior: 1.52,
+      thickness: 0.6,
+      specularColor: new THREE.Color("#F9A8D4"),
+      specularIntensity: 0.8,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      side: THREE.DoubleSide,
     });
-    const topRim = new THREE.Mesh(rimGeo, rimMat);
-    topRim.position.y = 2.2;
-    topRim.rotation.x = Math.PI / 2;
-    hourglassGroup.add(topRim);
+    const glassMesh = new THREE.Mesh(glassGeo, glassMat);
+    hourglassGroup.add(glassMesh);
 
-    const botRim = new THREE.Mesh(rimGeo, rimMat);
-    botRim.position.y = -2.2;
-    botRim.rotation.x = Math.PI / 2;
-    hourglassGroup.add(botRim);
+    // Subtle inner wireframe for structure & depth definition
+    const wireGeo = new THREE.WireframeGeometry(glassGeo);
+    const wireMat = new THREE.LineBasicMaterial({
+      color: "#F9A8D4",
+      transparent: true,
+      opacity: 0.18,
+    });
+    hourglassGroup.add(new THREE.LineSegments(wireGeo, wireMat));
+
+    // Metallic polished top & bottom caps
+    const capGeo = new THREE.CylinderGeometry(1.38, 1.42, 0.08, 64);
+    const capMat = new THREE.MeshStandardMaterial({
+      color: "#3a3a3a",
+      metalness: 0.95,
+      roughness: 0.1,
+    });
+
+    const topCap = new THREE.Mesh(capGeo, capMat);
+    topCap.position.y = 2.24;
+    hourglassGroup.add(topCap);
+
+    const botCap = new THREE.Mesh(capGeo, capMat);
+    botCap.position.y = -2.24;
+    hourglassGroup.add(botCap);
 
     // Neck singularity ring — bright pulsing
-    const neckRingGeo = new THREE.TorusGeometry(0.06, 0.03, 8, 48);
+    const neckRingGeo = new THREE.TorusGeometry(0.08, 0.02, 8, 48);
     const neckRingMat = new THREE.MeshBasicMaterial({ color: "#ffffff" });
     const neckRing = new THREE.Mesh(neckRingGeo, neckRingMat);
     neckRing.rotation.x = Math.PI / 2;
