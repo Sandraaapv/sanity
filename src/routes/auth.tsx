@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { Sparkles, Loader2, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Sparkles, Loader2, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck, CheckCircle2, Sliders } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeProvider } from "@/components/hub/theme";
 import { Auth3DScene } from "@/components/auth/Auth3DScene";
@@ -239,15 +239,26 @@ function AuthPage() {
 
           {/* Tagline */}
           <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#F9A8D4]/30 bg-[#F9A8D4]/10 text-[#F9A8D4] text-xs font-semibold tracking-wider uppercase backdrop-blur-md">
-              <ShieldCheck className="w-3.5 h-3.5" /> Unified Modern Workspace
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-white/10 bg-black/40 text-muted-foreground text-[10px] font-bold tracking-widest uppercase backdrop-blur-md">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#F9A8D4]" /> UNIFIED MODERN WORKSPACE
             </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight uppercase text-foreground">
-              Restore Order To Your Mind
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-wider uppercase text-foreground">
+              RESTORE ORDER TO YOUR MIND
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto font-medium leading-relaxed">
-              Organize your tasks, draft elegant notes, schedule your agenda, and track focused study sessions in one luxury workspace.
+            <p className="text-xs sm:text-sm text-muted-foreground/80 max-w-md mx-auto font-medium leading-relaxed">
+              Every task, note and minute in one calm surface — so your attention falls where it matters, grain by grain.
             </p>
+
+            {/* Scene Controls Bar */}
+            <div className="pt-2 flex justify-center">
+              <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/10 bg-black/60 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest text-muted-foreground shadow-sm">
+                <span className="flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-[#F9A8D4]" /> SCENE CONTROLS
+                </span>
+                <span className="w-1 h-1 rounded-full bg-white/20" />
+                <span className="text-foreground">AUTO • ULTRA</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
