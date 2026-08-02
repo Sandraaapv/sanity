@@ -120,7 +120,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: unknown, session: { access_token?: string } | null) => {
       if (session?.access_token) {
         try {
           const { data } = await api.post("/auth/google", {
