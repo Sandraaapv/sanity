@@ -5,11 +5,21 @@ interface Auth3DSceneProps {
   isTyping?: boolean;
   isHoveringLogo?: boolean;
   isLoginSuccess?: boolean;
+  sandFlow?: number;
+  grainSize?: number;
+  dust?: number;
+  aura?: number;
+  quality?: "Low" | "Medium" | "Ultra";
 }
 
 export function Auth3DScene({
   isTyping = false,
   isLoginSuccess = false,
+  sandFlow = 1.0,
+  grainSize = 1.0,
+  dust = 1.0,
+  aura = 1.0,
+  quality = "Ultra",
 }: Auth3DSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef({
