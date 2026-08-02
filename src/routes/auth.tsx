@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { Sparkles, Loader2, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import { Sparkles, Loader2, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import { ThemeProvider } from "@/components/hub/theme";
 import { Auth3DScene } from "@/components/auth/Auth3DScene";
 import { StarField } from "@/components/auth/StarField";
@@ -22,6 +23,19 @@ export const Route = createFileRoute("/auth")({
     </ThemeProvider>
   ),
 });
+
+function isValidGmail(email: string): boolean {
+  const clean = email.trim().toLowerCase();
+  if (!clean.endsWith("@gmail.com")) return false;
+
+  const localPart = clean.slice(0, -10);
+  if (localPart.length < 3 || localPart.length > 30) return false;
+  if (localPart.startsWith(".") || localPart.endsWith(".")) return false;
+  if (localPart.includes("..")) return false;
+
+  const validLocalRegex = /^[a-z0-9]+(\.[a-z0-9]+)*(\+[a-z0-9]+)?$/;
+  return validLocalRegex.test(localPart);
+}
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -100,13 +114,17 @@ function AuthPage() {
     setIsBackendOffline(false);
 
     const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      setError("Please enter a valid email address.");
+    if (!isValidGmail(cleanEmail)) {
+      const msg = "SANITY strictly requires a legitimate @gmail.com email address.";
+      setError(msg);
+      toast.error(msg, { description: "Non-Gmail domains (e.g., yahoo, outlook) are not permitted." });
       return;
     }
 
     if (!password || password.length < 4) {
-      setError("Password must be at least 4 characters.");
+      const msg = "Password must be at least 4 characters.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -126,12 +144,13 @@ function AuthPage() {
       }
 
       setIsLoginSuccess(true);
+      toast.success("Welcome back to SANITY!");
       setTimeout(() => {
         navigate({ to: "/" });
       }, 800);
     } catch (err) {
       if (axios.isAxiosError(err) && (err.response?.status === 502 || err.code === "ERR_BAD_RESPONSE" || !err.response)) {
-        // Seamless fallback for offline backend: log in locally with entered credentials
+        // Seamless fallback for offline backend: log in locally with entered Gmail credentials
         const userName = displayName || cleanEmail.split("@")[0];
         localStorage.setItem("token", "local-session-token");
         localStorage.setItem("sanity_guest", "true");
@@ -139,16 +158,19 @@ function AuthPage() {
         localStorage.setItem("sanity_user_email", cleanEmail);
 
         setIsLoginSuccess(true);
+        toast.success(`Welcome, ${userName}!`, { description: "Authenticated in workspace mode." });
         setTimeout(() => {
           navigate({ to: "/" });
         }, 800);
       } else if (axios.isAxiosError(err) && err.response?.data?.message) {
         setError(err.response.data.message);
+        toast.error(err.response.data.message);
       } else {
         // Default seamless login
         localStorage.setItem("token", "local-session-token");
         localStorage.setItem("sanity_guest", "true");
         setIsLoginSuccess(true);
+        toast.success("Signed in successfully");
         setTimeout(() => {
           navigate({ to: "/" });
         }, 800);
@@ -162,6 +184,7 @@ function AuthPage() {
     setError(null);
     try {
       setLoading(true);
+      toast.loading("Redirecting to Google OAuth 2.0...");
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -174,6 +197,7 @@ function AuthPage() {
       localStorage.setItem("token", "google-local-token");
       localStorage.setItem("sanity_guest", "true");
       setIsLoginSuccess(true);
+      toast.success("Authenticated with Google");
       setTimeout(() => {
         navigate({ to: "/" });
       }, 800);
@@ -293,17 +317,49 @@ function AuthPage() {
               )}
 
               <div className="space-y-1">
-                <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => handleInputChange(setEmail)(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-[#F9A8D4] focus:ring-1 focus:ring-[#F9A8D4] transition"
-                />
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                    Gmail Address
+                  </label>
+                  {email.length > 0 && (
+                    <span className="text-[10px] font-semibold inline-flex items-center gap-1 transition">
+                      {isValidGmail(email) ? (
+                        <span className="text-emerald-400 inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Valid Gmail
+                        </span>
+                      ) : (
+                        <span className="text-rose-400 inline-flex items-center gap-1">
+                          Must be @gmail.com
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    placeholder="yourname@gmail.com"
+                    value={email}
+                    onChange={(e) => handleInputChange(setEmail)(e.target.value)}
+                    className={`w-full bg-black/30 border rounded-xl pl-3.5 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition ${
+                      email.length > 0
+                        ? isValidGmail(email)
+                          ? "border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                          : "border-rose-500/50 focus:border-rose-400 focus:ring-1 focus:ring-rose-400"
+                        : "border-white/10 focus:border-[#F9A8D4] focus:ring-1 focus:ring-[#F9A8D4]"
+                    }`}
+                  />
+                  {email.length > 0 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {isValidGmail(email) ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-400" />
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1">
