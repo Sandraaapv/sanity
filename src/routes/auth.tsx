@@ -66,7 +66,7 @@ function AuthPage() {
           localStorage.setItem("token", data.token);
           // Sign out of Supabase locally since we've established our own session
           await supabase.auth.signOut();
-          
+
           setIsLoginSuccess(true);
           setTimeout(() => {
             navigate({ to: "/" });
@@ -174,7 +174,7 @@ function AuthPage() {
               isLoginSuccess={isLoginSuccess}
             />
           </div>
-          
+
           {/* Desktop Tagline */}
           <div className="hidden md:block space-y-1.5 mt-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <h2 className="text-sm md:text-lg font-bold tracking-wider uppercase text-foreground">
@@ -219,9 +219,8 @@ function AuthPage() {
                     setMode(m);
                     setError(null);
                   }}
-                  className={`relative z-10 py-2.5 text-xs uppercase tracking-[0.18em] transition-colors font-bold ${
-                    mode === m ? "text-[#1a1a1a]" : "text-muted-foreground"
-                  }`}
+                  className={`relative z-10 py-2.5 text-xs uppercase tracking-[0.18em] transition-colors font-bold ${mode === m ? "text-[#1a1a1a]" : "text-muted-foreground"
+                    }`}
                 >
                   {m === "login" ? "Sign in" : "Sign up"}
                 </button>

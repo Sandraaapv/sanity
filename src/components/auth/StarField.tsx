@@ -12,51 +12,44 @@ export function StarField() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Generate 150 stars (65% pink #F9A8D4, 35% white)
-    const stars = Array.from({ length: 150 }, () => ({
+    const stars = Array.from({ length: 180 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      radius: Math.random() * 1.2 + 0.3, // 0.3px – 1.5px
-      opacity: Math.random(),
-      speed: Math.random() * 0.02 + 0.005, // blink speed
-      phase: Math.random() * Math.PI * 2, // offset so they don't blink together
-      pink: Math.random() > 0.35, // 65% pink, 35% white
+      r: Math.random() * 1.1 + 0.2,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.018 + 0.004,
+      pink: Math.random() > 0.38,
     }));
 
-    let animFrame: number;
     let t = 0;
+    let animId: number;
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      stars.forEach((star) => {
-        // Sine wave opacity — smooth blink between 0.2 and 1.0
-        const opacity = 0.2 + 0.8 * Math.abs(Math.sin(t * star.speed + star.phase));
-
+      stars.forEach(s => {
+        const opacity = 0.15 + 0.85 * Math.abs(Math.sin(t * s.speed + s.phase));
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = star.pink
-          ? `rgba(249, 168, 212, ${opacity})` // #F9A8D4 SANITY Pink
-          : `rgba(255, 255, 255, ${opacity})`; // White
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = s.pink
+          ? `rgba(249,168,212,${opacity})`
+          : `rgba(255,255,255,${opacity})`;
         ctx.fill();
       });
-
       t++;
-      animFrame = requestAnimationFrame(draw);
+      animId = requestAnimationFrame(draw);
     };
 
     draw();
 
-    // Resize handler
-    const handleResize = () => {
+    const onResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", onResize);
 
     return () => {
-      cancelAnimationFrame(animFrame);
-      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
@@ -66,8 +59,6 @@ export function StarField() {
       style={{
         position: "fixed",
         inset: 0,
-        width: "100vw",
-        height: "100vh",
         zIndex: 0,
         background: "#000000",
         pointerEvents: "none",
@@ -75,4 +66,3 @@ export function StarField() {
     />
   );
 }
-export default StarField;
